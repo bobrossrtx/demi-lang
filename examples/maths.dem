@@ -1,0 +1,6 @@
+let x = 12;
+let y = 5;
+let z = x + y * (x - y);
+x
+y
+z

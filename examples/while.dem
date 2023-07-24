@@ -1,0 +1,16 @@
+let num = 0;
+
+fn reach(x) {
+    let y = 0;
+
+    while (y < x) {
+        y = y + 1
+        print(y)
+    }
+
+    return y;
+}
+
+const d = 1000;
+
+reach(d)

@@ -1,0 +1,14 @@
+fn factorial(n) {
+if (n == 0) {
+        return 1;
+    } else {
+        return n * factorial(n-1);
+    }
+}
+
+print("Factorial from 0-10:");
+let i = 0;
+while (i <= 10) {
+    print(factorial(i));
+    i = i + 1;
+}

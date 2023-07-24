@@ -1,0 +1,54 @@
+const mystring = "Hello, Demi World!";
+let otherstring = 'I am a string too!';
+
+print(mystring);
+# Comment
+
+fn test() {
+    print(otherstring);
+}
+
+let x = 10;
+
+while (x > 0) {
+    print(x);
+    x = x - 1;
+}
+
+let output = null;
+
+const demilang = true;
+
+if (demilang == false) {
+    output = "This is not DemiLang";
+} else {
+    output = "This is DemiLang";
+}
+
+print(output);
+
+
+
+
+
+
+
+
+
+# let obj = {
+#     name: "Demi",
+#     age: 21,
+#     isStudent: true,
+#     isHuman: true,
+#     isAlive: true,
+#     isDead: false,
+#     isDemi: true,
+# };
+
+# # print(obj)
+
+# if (obj.isDemi == false) {
+#     print("This is not Demi")
+# } else {
+#     print("This is Demi")
+# }

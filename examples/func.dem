@@ -1,0 +1,14 @@
+fn add(a, b) {
+    let result = a + b;
+    return result;
+}
+
+print(add(10, 20))
+
+fn sub(a, b) {
+    let result = a - b;
+    return result;
+}
+
+# Print the result of 50 - 30
+print(sub(50, 30))

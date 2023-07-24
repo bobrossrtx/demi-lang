@@ -1,0 +1,8 @@
+const mystring = "Hello, Demi World!";
+const otherstring = 'I am a string too!';
+print(mystring)
+
+
+test
+
+test2

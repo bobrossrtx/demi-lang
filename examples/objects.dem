@@ -1,0 +1,7 @@
+const player1 = {
+    name: "Scorpion",
+    hp: 100,
+    attack: 10
+};
+
+print(player1)
