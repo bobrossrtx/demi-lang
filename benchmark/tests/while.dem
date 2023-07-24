@@ -1,0 +1,13 @@
+let num = 0;
+
+fn reach(x) {
+    let y = 0;
+
+    while (y < x) {
+        y = y + 1
+        print(y)
+    }
+
+    return y;
+}
+reach(1000)
