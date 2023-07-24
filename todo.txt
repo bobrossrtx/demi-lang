@@ -1,0 +1,64 @@
+------------------ TODO ------------------
+
+- Add support for floating point numbers
+- Add support for negative numbers
+- Add support for Arrays
+- Add support for boolean operators (ie &&, ||, !) (If statements)
+- Add support for 'for' loops
+
+- Create an Icon for the .dem files
+- Create a logo for the language
+- Create a website for the language
+- Create a proper README.md file
+- Create a proper LICENSE file
+- Create a proper CONTRIBUTING.md file
+- Upload to GitHub
+
+- Add support for importing modules
+- Add support for importing files
+
+- Add support for classes
+
+------------------ TODO ------------------
+
+##########################################
+
+------------------ FIX -------------------
+
+- Printing objects doesn't show any of the object's properties
+- Printing functions doesn't show the AST of the function
+- (stdlib.time) sleep() doesn't work
+
+------------------ FIX -------------------
+
+##########################################
+
+------------------ DONE ------------------
+
+- Add support for strings
+- Add support for objects
+- Add support for functions
+- Add support for if statements
+- Add support for variable declaration
+- Add support for variable reassignment
+- Add support for arithmetic operations (ie +, -, *, /, %)
+- Add support for while loops
+- Add support for comparison operators (ie <, >, <=, >=, ==, !=)
+
+- Added syntax highlighting via Demi-SyntaxHighlighting extension (VSCode)
+
+------------------ DONE ------------------
+
+##########################################
+
+------------------ NOTES -----------------
+
+------------------ NOTES -----------------
+
+##########################################
+
+------------------ IDEAS -----------------
+
+- FUTURE: PORT TO C++ (OR C) AND MAKE IT A COMPILER
+
+------------------ IDEAS -----------------

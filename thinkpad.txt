@@ -1,0 +1,27 @@
+--------------------------------------------------------------------------------
+
+                    How do I want to handle modules and imports?
+
+    - Local modules are imported with a relative path.
+    - Installed Modules (from package manager) are imported with a package name.
+
+    - Modules Contain public and private functions. (public functions are exported with the keyword export)
+    - Example: export function publicFunction() { ... }
+    - Example: function privateFunction() { ... }
+
+    (IDEA)
+    - Can import a function from a module with the keyword include.
+    - Example: include { publicFunction } = './module.dem'
+    - Example: include { publicFunction } = 'module'
+    
+    - Imports are hoisted to the top of the file.
+    - Imports are evaluated before the rest of the file.
+
+    (IDEA)
+    - Imports are cached. (If a module is imported twice, it will only be evaluated once.)
+
+    (IDEA)
+    - Imports can be aliased.
+    - Example: include { publicFunction as alias } = './module.dem'
+
+--------------------------------------------------------------------------------
