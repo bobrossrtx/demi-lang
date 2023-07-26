@@ -19,7 +19,7 @@ export function SetupStdioFunctions(env: Environment) {
                 console.log(args[0]?.value);
                 break;
             case "object":
-                console.log(JSON.stringify(args[0]));
+                console.log(args[0]);
                 break;
             case "function":
                 console.log(args[0]?.value);

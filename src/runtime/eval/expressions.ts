@@ -98,17 +98,37 @@ export function eval_identifier(ident: Identifier, env: Environment): RuntimeVal
 }
 
 export function eval_object_expr(obj: ObjectLiteral, env: Environment): RuntimeVal {
-    const object = { type: "object", properties: new Map() } as ObjectVal;
+    const objscope = new Environment(env);
+    const object = { type: "object", properties: new Map(), objscope } as ObjectVal;
     for (const {key, value} of obj.properties) {
         const runtimeVal = (value == undefined) ? env.lookupVar(key) : evaluate(value, env);
         object.properties.set(key, runtimeVal);
+        objscope.declareVar(key, runtimeVal, false);
     }
 
     return object;
 }
 
+export function eval_member_expr(expr: Identifier, env: Environment): RuntimeVal {
+    const val = env.lookupVar(expr.symbol);
+    return val;
+}
+
 export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
-    const args = expr.args.map(arg => evaluate(arg, env));
+
+    // TODO: FIGURE OUT HOW TO HANDLE INNER SCOPES
+
+
+    const args = expr.args.map(arg => {
+        // Check if there is a secondary scope inside one of the arguments
+        let currentscope: Environment = env;
+
+        if (arg.kind == "ObjectLiteral") {
+            currentscope = (arg as ObjectLiteral).scope ? (arg as ObjectLiteral).scope! : env;
+        }
+
+        return evaluate(arg, currentscope);
+    });
     const fn = evaluate(expr.caller, env);
 
     if (fn.type == "native-fn") {
@@ -152,4 +172,3 @@ export function eval_assignment_expr(node: AssignmentExpr, env: Environment): Ru
     const varname = (node.assigne as Identifier).symbol;
     return env.assignVar(varname, evaluate(node.value, env));
 }
-

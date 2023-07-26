@@ -17,7 +17,7 @@ export function createGlobalEnv(): Environment {
 
 export default class Environment {
     private parent?: Environment;
-    private variables: Map<string, RuntimeVal>;
+    public variables: Map<string, RuntimeVal>;
     private constants: Set<string>;
 
     constructor(parentENV?: Environment) {

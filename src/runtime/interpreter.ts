@@ -4,6 +4,7 @@ import {
     AssignmentExpr,
     BinaryExpr,
     CallExpr,
+    ClassDeclaration,
     ComparisonExpr,
     FunctionDeclaration,
     Identifier,
@@ -15,7 +16,7 @@ import {
     Stmt,
     StringLiteral,
     VarDeclaration,
-WhileStatement
+    WhileStatement
     } from '../frontend/ast.ts';
 import {
     eval_assignment_expr,
@@ -23,14 +24,16 @@ import {
     eval_call_expr,
     eval_comparison_expr,
     eval_identifier,
-    eval_object_expr
+    eval_member_expr,
+    eval_object_expr,
     } from './eval/expressions.ts';
 import {
+eval_class_decl,
     eval_function_decl,
     eval_if_stmt,
     eval_program,
     eval_var_decl,
-eval_while_stmt
+    eval_while_stmt
     } from './eval/statements.ts';
 import { MK_NUMBER, MK_STRING, RuntimeVal } from './values.ts';
 
@@ -50,6 +53,8 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_program(astNode as Program, env);
         case "ObjectLiteral":
             return eval_object_expr(astNode as ObjectLiteral, env);
+        case "MemberExpr":
+            return eval_member_expr(astNode as Identifier, env);
         case "CallExpr":
             return eval_call_expr(astNode as CallExpr, env);
         case "ComparisonExpr":
@@ -60,6 +65,8 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_var_decl(astNode as VarDeclaration, env);
         case "FunctionDeclaration":
             return eval_function_decl(astNode as FunctionDeclaration, env);
+        case "ClassDeclaration":
+            return eval_class_decl(astNode as ClassDeclaration, env);
         case "ReturnStatement":
             return evaluate((astNode as ReturnStatement).value, env);
         case "IfStatement":

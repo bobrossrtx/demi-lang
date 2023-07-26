@@ -1,8 +1,11 @@
+import Environment from "../runtime/environment.ts";
+
 export type NodeType =
     // STATEMENTS
     | "Program"
     | "VarDeclaration"
     | "FunctionDeclaration"
+    | "ClassDeclaration"
     | "ReturnStatement"
     | "IfStatement"
     | "WhileStatement"
@@ -37,12 +40,21 @@ export interface VarDeclaration extends Stmt {
     constant: boolean;
     identifier: string;
     value?: Expr;
+    access: "public" | "private";
 }
 
 export interface FunctionDeclaration extends Stmt {
     kind: "FunctionDeclaration";
     identifier: string;
     params: string[];
+    body: Stmt[];
+    access: "public" | "private";
+}
+
+export interface ClassDeclaration extends Stmt {
+    kind: "ClassDeclaration";
+    identifier: string;
+    constructor: FunctionDeclaration;
     body: Stmt[];
 }
 
@@ -64,6 +76,7 @@ export interface WhileStatement extends Stmt {
     condition: Expr;
     body: Stmt[];
 }
+
 
 export interface Expr extends Stmt {
     kind: NodeType;
@@ -97,7 +110,7 @@ export interface CallExpr extends Expr {
 
 export interface MemberExpr extends Expr {
     kind: "MemberExpr";
-    object: Expr;
+    object: ObjectLiteral;
     property: Expr;
     computed: boolean;
 }
@@ -126,6 +139,7 @@ export interface Property extends Expr {
 export interface ObjectLiteral extends Expr {
     kind: "ObjectLiteral";
     properties: Property[];
+    scope?: Environment;
 }
 
 export interface NullLiteral extends Expr {

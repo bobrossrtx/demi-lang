@@ -8,7 +8,8 @@ export type ValueTypes =
     | "string"
     | "object"
     | "native-fn"
-    | "function";
+    | "function"
+    | "class";
 
 export interface RuntimeVal {
     type: ValueTypes;
@@ -38,6 +39,7 @@ export interface StringVal extends RuntimeVal {
 export interface ObjectVal extends RuntimeVal {
     type: "object";
     properties: Map<string, RuntimeVal>;
+    scope?: Environment;
 }
 
 export type FunctionCall = (args: RuntimeVal[], env: Environment) => RuntimeVal;
@@ -50,6 +52,14 @@ export interface FunctionVal extends RuntimeVal {
     type: "function";
     identifier: string;
     params: string[];
+    declarationEnv: Environment;
+    body: Stmt[];
+}
+
+export interface ClassVal extends RuntimeVal {
+    type: "class";
+    identifier: string;
+    constructor: FunctionVal;
     declarationEnv: Environment;
     body: Stmt[];
 }

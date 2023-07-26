@@ -1,5 +1,5 @@
 import Environment from "../environment.ts";
-import { MK_NATIVE_FN, NumberVal } from "../values.ts";
+import { MK_NATIVE_FN, MK_OBJECT, NumberVal } from "../values.ts";
 import { SetupMathFunctions } from "./math.ts";
 import { SetupStdioFunctions } from "./stdio.ts";
 import { SetupTimeFunctions } from "./time.ts";
@@ -36,5 +36,13 @@ export function SetupStdlibFunctions(env: Environment) {
         }
         else
             throw `exit() expects 0 or 1 arguments, got ${args.length}.`;
+    }), true);
+
+    // env.declareVar("panic", MK_NATIVE_FN((args, _scope) => {
+
+    env.declareVar("get_globals", MK_NATIVE_FN((args, _scope) => {
+        // return MK_OBJECT(env.variables);
+        let obj = MK_OBJECT(env.variables);
+        return obj;
     }), true);
 }

@@ -6,6 +6,7 @@ export enum TokenType {
     Number,
     Identifier,
     String,
+    // ClassObject,
 
     // Keyword
     Let,
@@ -16,6 +17,7 @@ export enum TokenType {
     Else,
     ElseIf,
     While,
+    Class,
 
     // Grouping * Operators
     BinaryOperator, // + - * / %
@@ -45,15 +47,18 @@ const KEYWORDS: Record<string, TokenType> = {
     else: TokenType.Else,
     elif: TokenType.ElseIf,
     while: TokenType.While,
+    class: TokenType.Class,
 }
 
 export interface Token {
     value: string;
     type: TokenType;
+    line: number;
+    column: number;
 }
 
 function token(value = "", type: TokenType): Token {
-    return { value, type };
+    return { value, type, line: 0, column: 0 };
 }
 
 function isalpha(src: string): boolean {

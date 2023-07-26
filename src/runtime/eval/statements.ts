@@ -1,7 +1,7 @@
-import { FunctionDeclaration, IfStatement, Program, ReturnStatement, VarDeclaration, WhileStatement } from "../../frontend/ast.ts";
+import { ClassDeclaration, FunctionDeclaration, IfStatement, Program, ReturnStatement, VarDeclaration, WhileStatement } from "../../frontend/ast.ts";
 import Environment from "../environment.ts";
 import { evaluate } from "../interpreter.ts";
-import { RuntimeVal,MK_NULL, FunctionVal } from "../values.ts";
+import { RuntimeVal,MK_NULL, FunctionVal, ClassVal } from "../values.ts";
 
 export function eval_program(program: Program, env: Environment): RuntimeVal {
     let lastEvaluated: RuntimeVal = MK_NULL();
@@ -27,6 +27,28 @@ export function eval_function_decl(declaration: FunctionDeclaration, env: Enviro
     } as FunctionVal;
 
     return env.declareVar(declaration.identifier, fn, true);
+}
+
+export function eval_class_decl(declaration: ClassDeclaration, env: Environment): RuntimeVal {
+    // Create new class scope
+
+    const constructor = {
+        type: "function",
+        identifier: declaration.constructor.identifier,
+        params: declaration.constructor.params,
+        declarationEnv: env,
+        body: declaration.constructor.body
+    } as FunctionVal;
+
+    const cls = {
+        type: "class",
+        identifier: declaration.identifier,
+        constructor: constructor,
+        declarationEnv: env,
+        body: declaration.body 
+    } as ClassVal;
+
+    return env.declareVar(declaration.identifier, cls, true);
 }
 
 export function eval_return_statement(stmt: ReturnStatement, env: Environment): RuntimeVal {
