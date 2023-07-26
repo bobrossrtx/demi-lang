@@ -1,0 +1,10 @@
+class Time {
+    sleep(ms) {
+        now = this.get();
+        while (this.get() < now + ms) {}
+    }
+    
+    get() {
+        return get_time();
+    }
+}
