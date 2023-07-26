@@ -11,6 +11,38 @@ fn reach(x) {
     return y;
 }
 
-const d = 1000;
+const d = 10;
 
-reach(d)
+# reach(d);
+
+# print("Sleeping for 1 second");
+# sleep(10000);
+# print("Done sleeping");
+
+# Little idea:
+
+fn sleep_ms(ms) {
+    let start = get_time();
+    let end = start + ms;
+    while (get_time() < end) {}
+}
+
+print("Sleeping for 10 second");
+sleep_ms(10000);
+print("Done sleeping");
+
+# nested functions
+
+fn outer() {
+    let x = 0;
+
+    fn inner() {
+        let y = 0;
+        print("inner");
+    }
+
+    inner();
+    print("outer");
+}
+
+outer();

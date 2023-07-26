@@ -1,7 +1,24 @@
-const player1 = {
-    name: "Scorpion",
-    hp: 100,
-    attack: 10
+const foo = 42;
+
+const obj = {
+    x: 100,
+    y: 32,
+    foo,
+    complex: {
+        bar: true
+    }
 };
 
-print(player1)
+print(obj);
+
+print(obj.x);
+
+print(obj.y);
+
+# print(get_globals());
+
+# print(obj["x"]);
+
+# let f = obj.complex.bar;
+
+# print(f);

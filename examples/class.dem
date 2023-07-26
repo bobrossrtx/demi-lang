@@ -1,0 +1,33 @@
+class Test {
+    constructor(name) {
+        this.name = name;
+    }
+
+    fn set_name(name) private {
+        this.name = name;
+    }
+
+    fn set(name) {
+        this.set_name(name);
+    }
+
+    fn get() {
+        return this.name;
+    }
+}
+
+print(Test)
+
+fn myfunction() {
+    print("myfunction");
+}
+
+const testytest = "test2";
+
+const mytest = {
+    name: "mytest",
+    bob: "bob",
+    func: myfunction
+};
+
+print(mytest)
