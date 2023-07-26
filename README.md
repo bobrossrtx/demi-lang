@@ -1,15 +1,12 @@
 <!-- Title for the project -->
 # Demi - Programming Language
+
 ## Version: 0.0.4
 
 <!-- Badges -->
 [![MIT LICENSE](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Version](https://img.shields.io/badge/Version-0.0.4-blue)
 ![Deno](https://img.shields.io/badge/Deno-17.8.0-blue)
-
-
-
-
 
 <!-- Project mini description -->
 Demi is an interpreted programming language currently written in TypeScript. It is a dynamically typed language with a syntax similar to JavaScript. It is a work in progress and is not yet ready for use. I have plans to port it to C++ in the future set it up as an llvm compiled language.
@@ -56,7 +53,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you would like to contribute to this project, please read the [CONTRIBUTING](CONTRIBUTING.md) file for more information.
 
-## Other Tools:
+## Other Tools
 
 [Demi-SyntaxHighlighting](https://marketplace.visualstudio.com/items?itemName=bobrossrtx.demi-syntax)
 Demi-SyntaxHighlighting is a Visual Studio Code extension that adds syntax highlighting for Demi files.

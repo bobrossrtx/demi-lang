@@ -21,14 +21,16 @@ if (!(Test-Path -Path "build")) {
 
 # Compile the project
 
+# variable 
+$srcdir = "./src"
+
 # Windows:
 if ($platform -eq "windows") {
     # remove the old build if it exists
     if (Test-Path -Path ".\build\windows") {
         Remove-Item -Recurse -Force ".\build\windows"
     }
-
-    deno compile --allow-all --target x86_64-pc-windows-msvc -o .\build\windows\demi.exe .\main.ts
+    $compileflags = "x86_64-pc-windows-msvc"
 }
 # Linux:
 if ($platform -eq "linux") {
@@ -36,8 +38,7 @@ if ($platform -eq "linux") {
     if (Test-Path -Path "./build/linux") {
         Remove-Item -Recurse -Force "./build/linux"
     }
-
-    deno compile --allow-all --target x86_64-unknown-linux-gnu -o ./build/linux/demi .\main.ts
+    $compileflags = "x86_64-unknown-linux-gnu"
 }
 # MacOS:
 if ($platform -eq "macos") {
@@ -45,8 +46,7 @@ if ($platform -eq "macos") {
     if (Test-Path -Path "./build/macos") {
         Remove-Item -Recurse -Force "./build/macos"
     }
-
-    deno compile --allow-all --target x86_64-apple-darwin -o ./build/macos/demi .\main.ts
+    $compileflags = "x86_64-apple-darwin"
 }
 # All:
 if ($platform -eq "all") {
@@ -61,10 +61,16 @@ if ($platform -eq "all") {
         Remove-Item -Recurse -Force "./build/macos"
     }
 
-    deno compile --allow-all --target x86_64-pc-windows-msvc -o .\build\windows\demi.exe .\main.ts
-    deno compile --allow-all --target x86_64-unknown-linux-gnu -o ./build/linux/demi .\main.ts
-    deno compile --allow-all --target x86_64-apple-darwin -o ./build/macos/demi .\main.ts
+    deno compile --allow-all --target x86_64-pc-windows-msvc -o ./build/windows/demi.exe $srcdir/main.ts
+    deno compile --allow-all --target x86_64-unknown-linux-gnu -o ./build/linux/demi $srcdir/main.ts
+    deno compile --allow-all --target x86_64-apple-darwin -o ./build/macos/demi $srcdir/main.ts
+    Write-Host "Compilation Complete!" -ForegroundColor Green
+    exit 0
 }
+
+# Compile the project
+deno compile --allow-all --target $compileflags -o ./build/$platform/demi.exe $srcdir/main.ts
 
 # Print Completion Message in Green
 Write-Host "Compilation Complete!" -ForegroundColor Green
+exit 0
