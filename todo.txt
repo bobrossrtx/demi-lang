@@ -7,8 +7,6 @@
 - Add support for 'for' loops
 
 - Create an Icon for the .dem files
-- Create a logo for the language
-- Create a website for the language
 
 - Add support for importing modules
 - Add support for importing files
@@ -16,6 +14,14 @@
 - Add support for classes
 
 ------------------ TODO ------------------
+
+##########################################
+
+----------------- WORKING ----------------
+
+- Create a website for the language
+
+----------------- WORKING ----------------
 
 ##########################################
 
@@ -39,6 +45,8 @@
 - Add support for while loops
 - Add support for comparison operators (ie <, >, <=, >=, ==, !=)
 
+- Added a temporary fix to sleep_ms function (wait until imports implemented)
+
 - Added syntax highlighting via Demi-SyntaxHighlighting extension (VSCode)
 
 - (FIX) Printing objects doesn't show any of the object's properties
@@ -48,6 +56,8 @@
 - Create a proper LICENSE file
 - Create a proper CONTRIBUTING.md file
 - Upload to GitHub
+
+- Create a logo for the language
 
 ------------------ DONE ------------------
 
