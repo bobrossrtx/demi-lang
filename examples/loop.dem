@@ -1,0 +1,25 @@
+fn sleep_ms(ms) {
+    let start = get_time();;
+    let end = start + ms;
+
+    let currtime = get_time();;
+    while (currtime != end) {
+        currtime = get_time();;
+     }
+}
+
+fn reach(x) {
+    let y = 0;
+
+    while (y < x) {
+        y = y + 1;
+        print(y);
+        sleep_ms(1000);
+    }
+    
+    return y;
+};
+
+reach(10);
+sleep_ms(1000);
+print("Yay, the sleep function works");

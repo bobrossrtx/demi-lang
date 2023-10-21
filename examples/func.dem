@@ -3,7 +3,7 @@ fn add(a, b) {
     return result;
 }
 
-print(add(10, 20))
+print(add(10, 20));
 
 fn sub(a, b) {
     let result = a - b;
@@ -11,4 +11,4 @@ fn sub(a, b) {
 }
 
 # Print the result of 50 - 30
-print(sub(50, 30))
+print(sub(50, 30));

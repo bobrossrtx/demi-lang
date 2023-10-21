@@ -1,0 +1,15 @@
+# nested functions
+
+fn outer() {
+    let x = 0;
+
+    fn inner() {
+        let y = 0;
+        print("inner");
+    }
+
+    inner();
+    print("outer");
+}
+
+outer();

@@ -4,45 +4,34 @@ fn reach(x) {
     let y = 0;
 
     while (y < x) {
-        y = y + 1
-        print(y)
+        y = y + 1;
+        print(y);
     }
 
     return y;
 }
 
-const d = 10;
+print("Reach Function (while loop)");
+reach(5);
 
-# reach(d);
 
-# print("Sleeping for 1 second");
-# sleep(10000);
-# print("Done sleeping");
-
-# Little idea:
 
 fn sleep_ms(ms) {
-    let start = get_time();
+    let start = get_time();;
     let end = start + ms;
-    while (get_time() < end) {}
+
+    let currtime = get_time();;
+    while (currtime < end) {
+        currtime = get_time();;
+    }
 }
 
 print("Sleeping for 10 second");
-sleep_ms(10000);
-print("Done sleeping");
 
-# nested functions
-
-fn outer() {
-    let x = 0;
-
-    fn inner() {
-        let y = 0;
-        print("inner");
-    }
-
-    inner();
-    print("outer");
+let currsecond = 0;
+while (currsecond <= 9) {
+    currsecond = currsecond + 1;
+    sleep_ms(1000);
+    print(currsecond);
 }
-
-outer();
+print("Done sleeping");

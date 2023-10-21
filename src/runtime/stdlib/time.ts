@@ -40,6 +40,7 @@ export function SetupTimeFunctions(env: Environment) {
 
 
     // TODO: uncomment when sleep() I figure out how to make sleep() work
+    // FIX: Programmed in the language itself see examples/loop.dem for solution
     // // sleep()
     // env.declareVar("sleep", MK_NATIVE_FN((args, _scope) => {
     //     const ms = (args[0]?.value as number);
