@@ -18,6 +18,7 @@ export enum TokenType {
     ElseIf,
     While,
     Class,
+    // Pass,
 
     // Grouping * Operators
     BinaryOperator, // + - * / %
@@ -48,6 +49,7 @@ const KEYWORDS: Record<string, TokenType> = {
     elif: TokenType.ElseIf,
     while: TokenType.While,
     class: TokenType.Class,
+    // pass: TokenType.Pass
 }
 
 export interface Token {

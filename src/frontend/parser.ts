@@ -20,6 +20,7 @@ import { Token, tokenize, TokenType } from './lexer.ts';
 // 18. Object
 
 import {
+    // PassExpr,
     AssignmentExpr,
     BinaryExpr,
     CallExpr,
@@ -115,14 +116,13 @@ export default class Parser {
 
         if (this.at().type == TokenType.Semicolon) {
             this.eat(); // expect semicolon
-            if (isConstant) {
+            if (isConstant)
                 throw "Expected expression after constant declaration.";
-            }
-
             return { kind: "VarDeclaration", identifier, constant: false } as VarDeclaration;
         }
 
         this.expect(TokenType.Equals, "Expected equals sign after variable declaration.");
+
         const declaration = { 
             kind: "VarDeclaration",
             identifier,
@@ -365,6 +365,14 @@ export default class Parser {
             body,
         } as WhileStatement;
     }
+
+    // TODO: Implement pass expressions
+    // private parse_pass_expr(): Expr {
+    //     let currTok: Token = this.eat()
+    //     while (currTok.type != TokenType.CloseBrace)
+    //         currTok = this.eat();
+    //     return this.parse_assignment_expr();
+    // }
 
     private parse_expr(): Expr {
         return this.parse_assignment_expr();
