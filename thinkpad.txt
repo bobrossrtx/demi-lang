@@ -24,4 +24,10 @@
     - Imports can be aliased.
     - Example: include { publicFunction as alias } = './module.dem'
 
+    (IDEA)
+    Do we have GLOBALS & LOCALS (To be implemented if so)
+    - Globals can be seen by all programs no matter what
+    - Locals can be seen by 1 program by defining or importing
+    - Exports are added to an array of Demi variables which can be appended onto the programs locals after importing
+
 --------------------------------------------------------------------------------
