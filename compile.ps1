@@ -62,6 +62,17 @@ if ($platform -eq "all") {
     }
 
     deno compile --allow-all --target x86_64-pc-windows-msvc -o ./build/windows/demi.exe $srcdir/main.ts
+
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = "stop"
+    try {
+        if (Get-Command "rcedit") {
+            rcedit.exe ./build/windows/demi.exe --set-icon ./images/demi.ico
+        }
+    } catch {
+        "RCedit isn't found within your system path, please add it or install it to change Demi's executable icon"
+    } $ErrorActionPreference = $oldPreference
+
     deno compile --allow-all --target x86_64-unknown-linux-gnu -o ./build/linux/demi $srcdir/main.ts
     deno compile --allow-all --target x86_64-apple-darwin -o ./build/macos/demi $srcdir/main.ts
     Write-Host "Compilation Complete!" -ForegroundColor Green
@@ -70,6 +81,21 @@ if ($platform -eq "all") {
 
 # Compile the project
 deno compile --allow-all --target $compileflags -o ./build/$platform/demi.exe $srcdir/main.ts
+# ^^^^ THIS IS EXACTLY THE SAME AS WHAT I RUN IN TERMINAL
+
+
+
+if ($platform -eq "windows") {
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = "stop"
+    try {
+        if (Get-Command "rcedit") {
+            rcedit.exe ./build/windows/demi.exe --set-icon ./images/demi.ico
+        }
+    } catch {
+        "RCedit isn't found within your system path, please add it or install it to change Demi's executable icon"
+    } $ErrorActionPreference = $oldPreference
+}
 
 # Print Completion Message in Green
 Write-Host "Compilation Complete!" -ForegroundColor Green

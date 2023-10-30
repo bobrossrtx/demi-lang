@@ -1,7 +1,12 @@
-class Time {
+export class Time {
     sleep(ms) {
-        now = this.get();
-        while (this.get() < now + ms) {}
+        let start = get_time();;
+        let end = start + ms;
+
+        let currtime = get_time();;
+        while (currtime != end) {
+            currtime = get_time();;
+        }
     }
     
     get() {

@@ -15,8 +15,13 @@ export function createGlobalEnv(): Environment {
     return env;
 }
 
+function createDisposableEnv(): Environment {
+    const env = new Environment();
+    return env;
+}
+
 export default class Environment {
-    private parent?: Environment;
+    public parent?: Environment;
     public variables: Map<string, RuntimeVal>;
     private constants: Set<string>;
 
@@ -46,7 +51,7 @@ export default class Environment {
         return value;
     }
 
-    public lookupVar(varname: string): RuntimeVal {
+    public lookupVar(varname: string, customEnv: any = null): RuntimeVal {
         const env = this.resolve(varname);
         return env.variables.get(varname) as RuntimeVal;
     }

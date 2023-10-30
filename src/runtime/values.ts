@@ -40,6 +40,7 @@ export interface ObjectVal extends RuntimeVal {
     type: "object";
     properties: Map<string, RuntimeVal>;
     scope?: Environment;
+    parentEnv?: Environment;
 }
 
 export type FunctionCall = (args: RuntimeVal[], env: Environment) => RuntimeVal;

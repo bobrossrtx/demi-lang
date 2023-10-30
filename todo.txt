@@ -4,7 +4,6 @@
 - Add support for negative numbers
 - Add support for Arrays
 - Add support for boolean operators (ie &&, ||, !) (If statements)
-- Add support for 'for' loops
 
 - Create an Icon for the .dem files
 
@@ -44,6 +43,7 @@
 - Add support for arithmetic operations (ie +, -, *, /, %)
 - Add support for while loops
 - Add support for comparison operators (ie <, >, <=, >=, ==, !=)
+- Add support for 'for' loops
 
 - Added a temporary fix to sleep_ms function (wait until imports implemented)
 

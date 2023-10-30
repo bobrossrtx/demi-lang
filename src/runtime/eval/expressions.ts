@@ -1,4 +1,4 @@
-import { AssignmentExpr, BinaryExpr, CallExpr, ComparisonExpr, Identifier, ObjectLiteral, ReturnStatement } from "../../frontend/ast.ts";
+import { AssignmentExpr, BinaryExpr, CallExpr, ComparisonExpr, Identifier, MemberExpr, ObjectLiteral, ReturnStatement } from "../../frontend/ast.ts";
 import Environment from "../environment.ts";
 import { evaluate } from "../interpreter.ts";
 import { FunctionVal, MK_BOOL, MK_NULL, NativeFnVal, NumberVal, ObjectVal, RuntimeVal } from "../values.ts";
@@ -99,19 +99,18 @@ export function eval_identifier(ident: Identifier, env: Environment): RuntimeVal
 
 export function eval_object_expr(obj: ObjectLiteral, env: Environment): RuntimeVal {
     const objscope = new Environment(env);
-    const object = { type: "object", properties: new Map(), objscope } as ObjectVal;
+    const object = { type: "object", properties: new Map(), objscope, env} as ObjectVal;
     for (const {key, value} of obj.properties) {
         const runtimeVal = (value == undefined) ? env.lookupVar(key) : evaluate(value, env);
         object.properties.set(key, runtimeVal);
         objscope.declareVar(key, runtimeVal, false);
     }
-
     return object;
 }
 
-export function eval_member_expr(expr: Identifier, env: Environment): RuntimeVal {
-    const val = env.lookupVar(expr.symbol);
-    return val;
+export function eval_member_expr(expr: MemberExpr, env: Environment): RuntimeVal {
+    const obj = (env.lookupVar(expr.object.symbol)) as ObjectVal;
+    return (obj.properties.get(expr.property.symbol)) as RuntimeVal
 }
 
 export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
@@ -123,12 +122,14 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
         // Check if there is a secondary scope inside one of the arguments
         let currentscope: Environment = env;
 
+        // TODO: Potential issue with object member expressions
         if (arg.kind == "ObjectLiteral") {
             currentscope = (arg as ObjectLiteral).scope ? (arg as ObjectLiteral).scope! : env;
         }
 
         return evaluate(arg, currentscope);
     });
+    
     const fn = evaluate(expr.caller, env);
 
     if (fn.type == "native-fn") {

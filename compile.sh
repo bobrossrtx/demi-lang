@@ -23,7 +23,7 @@ fi
 
 # Create vars
 sourcedir="./src"
-compileflags="--allow-all --target"
+compileflags=""
 
 # Compile the project
 
@@ -33,7 +33,7 @@ if [ "$platform" = "windows" ]; then
     if [ -d "./build/windows" ]; then
         rm -rf "./build/windows"
     fi
-    compileflags += " x86_64-pc-windows-msvc"
+    compileflags="x86_64-pc-windows-msvc"
 fi
 
 # Linux:
@@ -42,7 +42,7 @@ if [ "$platform" = "linux" ]; then
     if [ -d "./build/linux" ]; then
         rm -rf "./build/linux"
     fi
-    compileflags += " x86_64-unknown-linux-gnu"
+    compileflags="x86_64-unknown-linux-gnu"
 fi
 
 # MacOS:
@@ -51,29 +51,29 @@ if [ "$platform" = "macos" ]; then
     if [ -d "./build/macos" ]; then
         rm -rf "./build/macos"
     fi
-    compileflags += " x86_64-apple-darwin"
+    compileflags="x86_64-apple-darwin"
 fi
 
 # All:
 if [ "$platform" = "all" ]; then
-    # # remove the old builds if it exists
-    # if [ -d "./build/windows" ]; then
-    #     rm -rf "./build/windows"
-    # fi
-    # if [ -d "./build/linux" ]; then
-    #     rm -rf "./build/linux"
-    # fi
-    # if [ -d "./build/macos" ]; then
-    #     rm -rf "./build/macos"
-    # fi
+    # remove the old builds if it exists
+    if [ -d "./build/windows" ]; then
+        rm -rf "./build/windows"
+    fi
+    if [ -d "./build/linux" ]; then
+        rm -rf "./build/linux"
+    fi
+    if [ -d "./build/macos" ]; then
+        rm -rf "./build/macos"
+    fi
 
-    deno compile --allow-all --target x86_64-pc-windows-msvc -o "./build/windows/demi.exe" "./main.ts"
-    deno compile --allow-all --target x86_64-unknown-linux-gnu -o "./build/linux/demi" "./main.ts"
-    deno compile --allow-all --target x86_64-apple-darwin -o "./build/macos/demi" "./main.ts"
+    deno compile --allow-all --target x86_64-pc-windows-msvc -o "./build/windows/demi.exe" "./$sourcedir/main.ts"
+    deno compile --allow-all --target x86_64-unknown-linux-gnu -o "./build/linux/demi" "./$sourcedir/main.ts"
+    deno compile --allow-all --target x86_64-apple-darwin -o "./build/macos/demi" "./$sourcedir/main.ts"
     echo -e "\033[32mCompilation Complete!\033[0m"
     exit
 else
-    deno compile $compileflags -o "./build/$platform/" "$sourcedir/main.ts"
+    deno compile --allow-all --target $compileflags -o "./build/$platform/demi" "$sourcedir/main.ts"
 
     # Print Completion Message in Green
     echo -e "\033[32mCompilation Complete!\033[0m"

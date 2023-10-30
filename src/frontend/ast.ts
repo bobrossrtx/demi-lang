@@ -9,6 +9,7 @@ export type NodeType =
     | "ReturnStatement"
     | "IfStatement"
     | "WhileStatement"
+    | "ForStatement"
 
     // EXPRESSIONS
     | "AssignmentExpr"
@@ -78,6 +79,13 @@ export interface WhileStatement extends Stmt {
     body: Stmt[];
 }
 
+export interface ForStatement extends Stmt {
+    kind: "ForStatement";
+    decl: VarDeclaration;
+    condition: ComparisonExpr;
+    modification: Expr;
+    body: Stmt[];
+}
 
 export interface Expr extends Stmt {
     kind: NodeType;
@@ -111,8 +119,8 @@ export interface CallExpr extends Expr {
 
 export interface MemberExpr extends Expr {
     kind: "MemberExpr";
-    object: ObjectLiteral;
-    property: Expr;
+    object: Identifier;
+    property: Identifier;
     computed: boolean;
 }
 

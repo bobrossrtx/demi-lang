@@ -6,9 +6,11 @@ import {
     CallExpr,
     ClassDeclaration,
     ComparisonExpr,
+    ForStatement,
     FunctionDeclaration,
     Identifier,
     IfStatement,
+    MemberExpr,
     NumericLiteral,
     ObjectLiteral,
     Program,
@@ -29,6 +31,7 @@ import {
     } from './eval/expressions.ts';
 import {
 eval_class_decl,
+    eval_for_stmt,
     eval_function_decl,
     eval_if_stmt,
     eval_program,
@@ -53,8 +56,10 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_program(astNode as Program, env);
         case "ObjectLiteral":
             return eval_object_expr(astNode as ObjectLiteral, env);
-        case "MemberExpr":
-            return eval_member_expr(astNode as Identifier, env);
+        case "MemberExpr": {
+            console.log(env)
+            return eval_member_expr(astNode as MemberExpr, env);
+        }
         case "CallExpr":
             return eval_call_expr(astNode as CallExpr, env);
         case "ComparisonExpr":
@@ -73,6 +78,8 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_if_stmt(astNode as IfStatement, env);
         case "WhileStatement":
             return eval_while_stmt(astNode as WhileStatement, env);
+        case "ForStatement":
+            return eval_for_stmt(astNode as ForStatement, env);
         case "NullLiteral":
             return { type: "null" };
 

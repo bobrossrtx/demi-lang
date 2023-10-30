@@ -1,0 +1,11 @@
+let i = -1;
+print(i);
+
+i = i + 3;
+print(i);
+
+i = i - 1;
+print(i);
+
+let b = "hello";
+print(b);

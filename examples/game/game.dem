@@ -1,0 +1,14 @@
+const player = {
+    health: 100;
+};
+
+# The main loop
+fn mainloop() {
+    # while (1 == 1) {
+
+    # }
+
+    print(player.test);
+}
+
+mainloop();

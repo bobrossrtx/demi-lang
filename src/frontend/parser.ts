@@ -40,6 +40,7 @@ import {
     ComparisonExpr,
     IfStatement,
     WhileStatement,
+    ForStatement,
     ClassDeclaration
     } from './ast.ts';
 
@@ -98,6 +99,8 @@ export default class Parser {
                 return this.parse_if_stmt();
             case TokenType.While:
                 return this.parse_while_stmt();
+            case TokenType.For:
+                return this.parse_for_stmt();
             case TokenType.Class:
                 return this.parse_class_decl();
             default:
@@ -364,6 +367,38 @@ export default class Parser {
             condition,
             body,
         } as WhileStatement;
+    }
+
+    private parse_for_stmt(): Stmt {
+        this.eat(); // eat the for keyword
+        this.expect(TokenType.OpenParen, "Expected open paren after for statement.");
+
+        const decl = this.parse_var_decl(); // Parse the variable declaration
+
+        const condition = (this.parse_expr() as ComparisonExpr);
+        this.expect(TokenType.Semicolon, "Expected semicolon after for loop comparison.");
+
+        const modification = this.parse_assignment_expr()
+        this.expect(TokenType.CloseParen, "Expected close paren after for statement.");
+        this.expect(TokenType.OpenBrace, "Expected open brace after for statement.")
+
+        const body: Stmt[] = [];
+
+        // parse the body
+        while (this.not_eof() && this.at().type != TokenType.CloseBrace) {
+            const stmt = this.parse_stmt();
+            body.push(stmt);
+        }
+
+        this.expect(TokenType.CloseBrace, "Expected close brace after for statement.")
+
+        return {
+            kind: "ForStatement",
+            decl,
+            condition,
+            modification,
+            body
+        } as ForStatement
     }
 
     // TODO: Implement pass expressions
@@ -645,6 +680,17 @@ export default class Parser {
                 return { kind: "Identifier", symbol: this.eat().value } as Identifier;
             case TokenType.Number:
                 return { kind: "NumericLiteral", value: parseFloat(this.eat().value) } as NumericLiteral;
+            case TokenType.BinaryOperator: {
+                let negative = false;
+                if (this.eat().value == "-") {
+                    negative = true;
+                }
+
+                let value = parseFloat(this.eat().value);
+                if (negative) value = -Math.abs(value);
+
+                return { kind: "NumericLiteral", value} as NumericLiteral;
+            }
             case TokenType.String:
                 return { kind: "StringLiteral", value: this.eat().value } as StringLiteral;
             case TokenType.Semicolon:

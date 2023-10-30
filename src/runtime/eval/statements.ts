@@ -1,4 +1,4 @@
-import { ClassDeclaration, FunctionDeclaration, IfStatement, Program, ReturnStatement, VarDeclaration, WhileStatement } from "../../frontend/ast.ts";
+import { ClassDeclaration, ForStatement, FunctionDeclaration, IfStatement, Program, ReturnStatement, VarDeclaration, WhileStatement } from "../../frontend/ast.ts";
 import Environment from "../environment.ts";
 import { evaluate } from "../interpreter.ts";
 import { RuntimeVal,MK_NULL, FunctionVal, ClassVal } from "../values.ts";
@@ -60,9 +60,6 @@ export function eval_if_stmt(stmt: IfStatement, env: Environment): RuntimeVal {
     if (condition.type != "boolean")
         throw new Error("If statement condition must be a boolean value.");
 
-    // console.log("Condition: ", condition);
-    // console.log(stmt);
-
     if (condition.value == true)
         return eval_program({ kind: "Program", body: stmt.body }, env);
     else if (stmt.elifs) {
@@ -91,5 +88,22 @@ export function eval_while_stmt(stmt: WhileStatement, env: Environment): Runtime
         lastEvaluated = eval_program({ kind: "Program", body: stmt.body }, env);
         condition.value = evaluate(stmt.condition, env).value;
     }
+    return lastEvaluated;
+}
+
+export function eval_for_stmt(stmt: ForStatement, env: Environment): RuntimeVal {
+    evaluate(stmt.decl, env); // Evaluate the variable declaration (puts the variable in the env)
+    const condition = evaluate(stmt.condition, env); // Evaluates the condition
+
+    if (condition.type != "boolean")
+        throw new Error("For statement condition should return a boolean value.");
+
+    let lastEvaluated: RuntimeVal = MK_NULL();
+    while (condition.value == true) {
+        lastEvaluated = eval_program({ kind: "Program", body: stmt.body }, env);
+        evaluate(stmt.modification, env); // Update the variable through modification
+        condition.value = evaluate(stmt.condition, env).value;
+    }
+
     return lastEvaluated;
 }

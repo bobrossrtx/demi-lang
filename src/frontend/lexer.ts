@@ -17,6 +17,7 @@ export enum TokenType {
     Else,
     ElseIf,
     While,
+    For,
     Class,
     // Pass,
 
@@ -48,6 +49,7 @@ const KEYWORDS: Record<string, TokenType> = {
     else: TokenType.Else,
     elif: TokenType.ElseIf,
     while: TokenType.While,
+    for: TokenType.For,
     class: TokenType.Class,
     // pass: TokenType.Pass
 }
@@ -141,9 +143,20 @@ export function tokenize(sourceCode: string): Token[] {
                     num += src.shift();
 
                 tokens.push(token(num, TokenType.Number));
+            }
+            else if (src[0] == "-" && isint(src[1])) {
+                let num = "-";
+                while(num.charAt(0) === '-')
+                    num = num.substring(1);
+
+                while (src.length > 0 && isint(src[1]))
+                    num += src.shift();
+
+                tokens.push(token(num, TokenType.Number));
+            }
             // } else if (isalpha(src[0])) { // Build identifier token
             // Build identifier token with isalpha() and underscores allowed
-            } else if (isalpha(src[0])) {
+            else if (isalpha(src[0])) {
                 let ident = "";
                 while (src.length > 0 && isalpha(src[0]))
                     ident += src.shift();

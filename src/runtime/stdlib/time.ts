@@ -37,23 +37,4 @@ export function SetupTimeFunctions(env: Environment) {
     env.declareVar("second_time", MK_NATIVE_FN((args, _scope) => {
         return MK_NUMBER(new Date().getSeconds());
     }), true);
-
-
-    // TODO: uncomment when sleep() I figure out how to make sleep() work
-    // FIX: Programmed in the language itself see examples/loop.dem for solution
-    // // sleep()
-    // env.declareVar("sleep", MK_NATIVE_FN((args, _scope) => {
-    //     const ms = (args[0]?.value as number);
-    //     if (ms == undefined || ms == null)
-    //         throw "Cannot sleep for undefined time.";
-    //     // Sleep for ms milliseconds
-    //     new Promise((resolve, reject) => {
-    //         setTimeout(() => {
-    //             resolve(MK_NULL());
-    //             reject(MK_NULL());
-    //         }, ms);
-    //     });
-
-    //     return MK_NULL();
-    // }), true);
 }
