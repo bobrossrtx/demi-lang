@@ -77,7 +77,6 @@ async function run(filename: string) {
     const input = await Deno.readTextFile(filename);
     const program = parser.produceAST(input);
 
-    // const result = evaluate(program, env);
     evaluate(program, env);
 }
 
@@ -90,10 +89,7 @@ function repl() {
 
     while (true) {
         const input = (prompt("> ") as string);
-
         const program = parser.produceAST(input);
-        
-        // const result = evaluate(program, env);
         evaluate(program, env);
     }
 }

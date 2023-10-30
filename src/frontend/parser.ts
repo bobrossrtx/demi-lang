@@ -133,7 +133,6 @@ export default class Parser {
             constant: isConstant
         } as VarDeclaration;
 
-        this.expect(TokenType.Semicolon, "Expected semicolon after variable declaration.");
         return declaration;
     }
 
@@ -194,7 +193,6 @@ export default class Parser {
     private parse_return_stmt() {
         this.eat(); // eat the return keyword
         const value = this.parse_expr();
-        this.expect(TokenType.Semicolon, "Expected semicolon after return statement.");
 
         return {
             kind: "ReturnStatement",
@@ -333,6 +331,8 @@ export default class Parser {
             this.expect(TokenType.CloseBrace, "Expected closing brace after else statement.");   
         }
 
+        console.log(elseBody);
+
         return {
             kind: "IfStatement",
             condition,
@@ -374,6 +374,7 @@ export default class Parser {
         this.expect(TokenType.OpenParen, "Expected open paren after for statement.");
 
         const decl = this.parse_var_decl(); // Parse the variable declaration
+        this.expect(TokenType.Semicolon, "Expected semicolon after the loop variable declaration")
 
         const condition = (this.parse_expr() as ComparisonExpr);
         this.expect(TokenType.Semicolon, "Expected semicolon after for loop comparison.");
@@ -579,26 +580,17 @@ export default class Parser {
     }
 
     private parse_call_expr(caller: Expr): Expr {
+        // First ()
         const call_expr: Expr = {
             kind: "CallExpr",
             caller,
             args: this.parse_args(),
         } as CallExpr;
-        
-        // How would this look like in code:
-        // fn fn1()
 
+        // Next ()
         if (this.at().type == TokenType.OpenParen) {
             return this.parse_call_expr(call_expr);
         }
-
-        // How would this look like in code:
-        // fn fn1()()
-
-        // Check for semicolon unless there is another call expression
-        if (this.at().type != TokenType.OpenParen)
-            if (this.at().type != TokenType.CloseParen)
-                this.expect(TokenType.Semicolon, "Missing semicolon after function call.");
 
         return call_expr;
     }

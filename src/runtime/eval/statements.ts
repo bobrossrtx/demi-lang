@@ -71,11 +71,11 @@ export function eval_if_stmt(stmt: IfStatement, env: Environment): RuntimeVal {
                 return eval_program({ kind: "Program", body: elif.body }, env);
         }
     }
-    else if (condition.value == false && stmt.elseBody)
+    
+    if (condition.value == false && stmt.elseBody)
         return eval_program({ kind: "Program", body: stmt.elseBody }, env);
     
     return MK_NULL();
-
 }
 
 export function eval_while_stmt(stmt: WhileStatement, env: Environment): RuntimeVal {
