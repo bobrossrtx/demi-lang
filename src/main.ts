@@ -84,7 +84,7 @@ function repl() {
     const parser = new Parser();
     const env = createGlobalEnv();
 
-    console.log("DemiScript v0.1")
+    console.log("DemiScript v0.0.2_alpha")
     console.log("Repl v0.1");
 
     while (true) {

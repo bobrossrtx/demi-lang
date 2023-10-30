@@ -1,11 +1,11 @@
 <!-- Title for the project -->
 # Demi - Programming Language
 
-## Version: 0.0.4
+## Version: 0.0.2-alpha
 
 <!-- Badges -->
 [![MIT LICENSE](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Version](https://img.shields.io/badge/Version-0.0.4-blue)
+![Version](https://img.shields.io/badge/Version-0.0.2_alpha-blue)
 ![Deno](https://img.shields.io/badge/Deno-17.8.0-blue)
 
 <!-- Project mini description -->
