@@ -2,15 +2,45 @@ import Parser from "./frontend/parser.ts";
 import { createGlobalEnv } from "./runtime/environment.ts";
 import { evaluate } from "./runtime/interpreter.ts";
 
-const parameters: Record<string, string> = {
-    "-d": "debug",
-    "-s": "speed",
-    "-v": "verbose",
-    "-r": "repl",
+interface Parameter {
+    name: string,
+    description: string,
+    hide?: boolean
+    alias?: string
+}
+
+const parameters: Record<string, Parameter> = {
+    "-h": {
+        name: "help",
+        description: "Shows the help menu",
+        alias: "--help"
+    },
+    "--help": {
+        name: "help",
+        description: "Shows the help menu",
+        hide: true
+    },
+    "-r": {
+        name: "repl",
+        description: "Starts up a Demi repl environment"
+    },
+    "-s": {
+        name: "speed",
+        description: "Displays the speed of the application after it has been run"
+    },
+    "-v": {
+        name: "verbose",
+        description: "Produces more verbose information"
+    },
+    "-d": {
+        name: "debug",
+        description: "Enables debug mode"
+    }
 }
 
 // deno-lint-ignore prefer-const
 let globalSettings: Record<string, boolean|string> = {
+    help: true,
     debug: false,
     speed: false,
     verbose: false,
@@ -19,7 +49,7 @@ let globalSettings: Record<string, boolean|string> = {
 }
 
 if (Deno.args.length == 0) {
-    repl();
+    displayHelp();
 } else {
     // Loop through all args and check if they are files, else add them the the programs parameter list
     for (let i = 0; i < Deno.args.length; i++) {
@@ -27,7 +57,7 @@ if (Deno.args.length == 0) {
         if (arg.startsWith("-")) {
             const setting = parameters[arg];
             if (setting) {
-                globalSettings[setting] = true;
+                globalSettings[setting.name] = true;
             } else {
                 console.error(`Unknown parameter '${arg}'`);
                 Deno.exit(1);
@@ -35,6 +65,12 @@ if (Deno.args.length == 0) {
         } else {
             globalSettings.file = arg;
         }
+    }
+
+    // Check if the help menu is opened
+    if (globalSettings.help) {
+        displayHelp();
+        Deno.exit(0);
     }
 
     // Check if debug is enabled
@@ -91,6 +127,22 @@ function repl() {
         const input = (prompt("> ") as string);
         const program = parser.produceAST(input);
         evaluate(program, env);
+    }
+}
+
+function displayHelp() {
+    console.log("DemiScript v0.0.2_alpha\n")
+
+    console.log("Usage: demi.exe [options] [file]\n")
+
+    console.log("Website : https://demi-website.fly.dev")
+    console.log("Github  : https://github.com/bobrossrtx/demi-lang")
+    console.log("Issues  : https://github.com/bobrossrtx/demi-lang/issues")
+
+    console.log("\nCommands:")
+    for (const parameter in parameters) {
+        if (!parameters[parameter].hide)
+            console.log(`   ${parameters[parameter].name}`+(" ").repeat(10-parameters[parameter].name.length)+(parameters[parameter]?.alias ? parameters[parameter]?.alias : (" ").repeat(6))+" "+parameter+(" ").repeat(3)+"| "+parameters[parameter].description);
     }
 }
 
