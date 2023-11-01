@@ -1,6 +1,7 @@
 import Parser from "./frontend/parser.ts";
 import { createGlobalEnv } from "./runtime/environment.ts";
 import { evaluate } from "./runtime/interpreter.ts";
+import Config from "./config.ts";
 
 interface Parameter {
     name: string,
@@ -40,7 +41,7 @@ const parameters: Record<string, Parameter> = {
 
 // deno-lint-ignore prefer-const
 let globalSettings: Record<string, boolean|string> = {
-    help: true,
+    help: false,
     debug: false,
     speed: false,
     verbose: false,
@@ -120,7 +121,7 @@ function repl() {
     const parser = new Parser();
     const env = createGlobalEnv();
 
-    console.log("DemiScript v0.0.2_alpha")
+    console.log(`DemiScript v${Config.version}`)
     console.log("Repl v0.1");
 
     while (true) {
@@ -131,7 +132,7 @@ function repl() {
 }
 
 function displayHelp() {
-    console.log("DemiScript v0.0.2_alpha\n")
+    console.log(`DemiScript v${Config.version}\n`)
 
     console.log("Usage: demi.exe [options] [file]\n")
 
