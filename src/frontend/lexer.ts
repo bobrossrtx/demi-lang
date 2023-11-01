@@ -1,5 +1,6 @@
 // let x = 45 + ( foo * bar )
 // [ LetToken, IdentifierToken, EqualsToken, NumberToken]
+import { sleep } from "https://deno.land/x/sleep/mod.ts";
 
 export enum TokenType {
     // Literal Types
@@ -61,8 +62,8 @@ export interface Token {
     column: number;
 }
 
-function token(value = "", type: TokenType): Token {
-    return { value, type, line: 0, column: 0 };
+function token(value = "", type: TokenType, line: number, column: number): Token {
+    return { value, type, line, column };
 }
 
 function isalpha(src: string): boolean {
@@ -80,52 +81,51 @@ function isskippable(str: string): boolean {
 export function tokenize(sourceCode: string): Token[] {
     const tokens = new Array<Token>();
     const src = sourceCode.split("");
+    let currline = 1;
+    let currcol = 1;
 
     // Build each token until EOF
     while (src.length > 0) {
-        if (src[0] == '(')
-            tokens.push(token(src.shift(), TokenType.OpenParen));
-        else if (src[0] == ')')
-            tokens.push(token(src.shift(), TokenType.CloseParen));
-        else if (src[0] == '{')
-            tokens.push(token(src.shift(), TokenType.OpenBrace));
-        else if (src[0] == '}')
-            tokens.push(token(src.shift(), TokenType.CloseBrace));
-        else if (src[0] == '[')
-            tokens.push(token(src.shift(), TokenType.OpenBracket));
-        else if (src[0] == ']')
-            tokens.push(token(src.shift(), TokenType.CloseBracket));
-        else if (src[0] == '+' || src[0] == '-' || src[0] == '*' || src[0] == '/' || src[0] == '%')
-            tokens.push(token(src.shift(), TokenType.BinaryOperator));
-        else if (src[0] == '=')
-            tokens.push(token(src.shift(), TokenType.Equals));
-        else if (src[0] == '<')
-            tokens.push(token(src.shift(), TokenType.Less));
-        else if (src[0] == '>')
-            tokens.push(token(src.shift(), TokenType.Greater));
-        else if (src[0] == '!')
-            tokens.push(token(src.shift(), TokenType.Not));
-        else if (src[0] == ';')
-            tokens.push(token(src.shift(), TokenType.Semicolon));
-        else if (src[0] == ',')
-            tokens.push(token(src.shift(), TokenType.Comma));
-        else if (src[0] == '.')
-            tokens.push(token(src.shift(), TokenType.Dot));
-        else if (src[0] == ':')
-            tokens.push(token(src.shift(), TokenType.Colon));
+        if (src[0] == "\n") {
+            currline += 1;
+            currcol = 1;
+            src.shift();
+        }
+        else if (src[0] == " ") {
+            currcol += 1;
+            src.shift();
+        }
+        else if (src[0] == '(') { tokens.push(token(src.shift(), TokenType.OpenParen, currline, currcol)); currcol += 1; }
+        else if (src[0] == ')') { tokens.push(token(src.shift(), TokenType.CloseParen, currline, currcol)); currcol += 1; }
+        else if (src[0] == '{') { tokens.push(token(src.shift(), TokenType.OpenBrace, currline, currcol)); currcol += 1; }
+        else if (src[0] == '}') { tokens.push(token(src.shift(), TokenType.CloseBrace, currline, currcol)); currcol += 1; }
+        else if (src[0] == '[') { tokens.push(token(src.shift(), TokenType.OpenBracket, currline, currcol)); currcol += 1; }
+        else if (src[0] == ']') { tokens.push(token(src.shift(), TokenType.CloseBracket, currline, currcol)); currcol += 1; }
+        else if (src[0] == '+' || src[0] == '-' || src[0] == '*' || src[0] == '/' || src[0] == '%') { tokens.push(token(src.shift(), TokenType.BinaryOperator, currline, currcol)); currcol += 1; }
+        else if (src[0] == '=') { tokens.push(token(src.shift(), TokenType.Equals, currline, currcol)); currcol += 1; }
+        else if (src[0] == '<') { tokens.push(token(src.shift(), TokenType.Less, currline, currcol)); currcol += 1; }
+        else if (src[0] == '>') { tokens.push(token(src.shift(), TokenType.Greater, currline, currcol)); currcol += 1; }
+        else if (src[0] == '!') { tokens.push(token(src.shift(), TokenType.Not, currline, currcol)); currcol += 1; }
+        else if (src[0] == ';') { tokens.push(token(src.shift(), TokenType.Semicolon, currline, currcol)); currcol += 1; }
+        else if (src[0] == ',') { tokens.push(token(src.shift(), TokenType.Comma, currline, currcol)); currcol += 1; }
+        else if (src[0] == '.') { tokens.push(token(src.shift(), TokenType.Dot, currline, currcol)); currcol += 1; }
+        else if (src[0] == ':') { tokens.push(token(src.shift(), TokenType.Colon, currline, currcol)); currcol += 1; }
         else if (src[0] == '"' || src[0] == "'") {
             // Build string token
+            const tempcurrcol = currcol;
 
             const doubleQuote = src[0] == '"';
 
             src.shift(); // Skip the opening quote
             let str = "";
 
-            while (src.length > 0 && src[0] != (doubleQuote ? '"' : "'"))
+            while (src.length > 0 && src[0] != (doubleQuote ? '"' : "'")) {
                 str += src.shift();
+                currcol += 1;
+            }
             
             src.shift(); // Skip the closing quote
-            tokens.push(token(str, TokenType.String));
+            tokens.push(token(str, TokenType.String, currline, tempcurrcol));
         }
         else if (src[0] == '#') {
             // Skip comment
@@ -138,35 +138,47 @@ export function tokenize(sourceCode: string): Token[] {
 
             // Build number token
             if (isint(src[0])) {
+                const tempcurrcol = currcol;
                 let num = "";
-                while (src.length > 0 && isint(src[0]))
-                    num += src.shift();
 
-                tokens.push(token(num, TokenType.Number));
+                while (src.length > 0 && isint(src[0])) {
+                    num += src.shift();
+                    currcol += 1;
+                }
+
+                tokens.push(token(num, TokenType.Number, currline, tempcurrcol));
             }
             else if (src[0] == "-" && isint(src[1])) {
+                const tempcurrcol = currcol;
                 let num = "-";
-                while(num.charAt(0) === '-')
+                while(num.charAt(0) === '-') {
                     num = num.substring(1);
+                    currcol += 1;
+                }
 
-                while (src.length > 0 && isint(src[1]))
+                while (src.length > 0 && isint(src[1])) {
                     num += src.shift();
+                    currcol += 1;
+                }
 
-                tokens.push(token(num, TokenType.Number));
+                tokens.push(token(num, TokenType.Number, currline, tempcurrcol));
             }
             // } else if (isalpha(src[0])) { // Build identifier token
             // Build identifier token with isalpha() and underscores allowed
             else if (isalpha(src[0])) {
+                const tempcurrcol = currcol;
                 let ident = "";
-                while (src.length > 0 && isalpha(src[0]))
+                while (src.length > 0 && isalpha(src[0])) {
                     ident += src.shift();
+                    currcol += 1;
+                }
 
                 // Check if identifier is a keyword
                 const reserved = KEYWORDS[ident];
                 if (typeof reserved == "number") {
-                    tokens.push(token(ident, reserved));
+                    tokens.push(token(ident, reserved, currline, tempcurrcol));
                 } else {
-                    tokens.push(token(ident, TokenType.Identifier));
+                    tokens.push(token(ident, TokenType.Identifier, currline, tempcurrcol));
                 }
             } else if (isskippable(src[0])) { // Skip whitespace
                 src.shift(); // SKIP THE CURRENT CHARACTER
@@ -177,10 +189,9 @@ export function tokenize(sourceCode: string): Token[] {
                 console.log(`Unexpected character: [${charcode}] ${src[0]}`);
                 Deno.exit(1);
             }
-
         }
     }
 
-    tokens.push(token("EndOfFile", TokenType.EOF));
+    tokens.push(token("EndOfFile", TokenType.EOF, currline, currcol));
     return tokens;
 }

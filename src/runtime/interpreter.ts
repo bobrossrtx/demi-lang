@@ -81,7 +81,7 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
         case "ForStatement":
             return eval_for_stmt(astNode as ForStatement, env);
         case "NullLiteral":
-            return { type: "null" };
+            return { type: "null", line: astNode.line, column: astNode.line };
 
         // Handle unimplemented ast types as error
         default:

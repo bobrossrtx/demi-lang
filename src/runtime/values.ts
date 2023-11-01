@@ -14,6 +14,8 @@ export type ValueTypes =
 export interface RuntimeVal {
     type: ValueTypes;
     value?: string | number | boolean | null | FunctionCall | Map<string, RuntimeVal>;
+    line: number;
+    column: number;
 }
 
 export interface NullVal extends RuntimeVal {

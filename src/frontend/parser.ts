@@ -74,14 +74,14 @@ export default class Parser {
         const program: Program = {
             kind: "Program",
             body: [],
+            line: 0,
+            column: 0,
         }
 
         // Parse until EOF
         while (this.not_eof()) {
             program.body.push(this.parse_stmt());
         }
-
-        // console.log(program);
 
         return program
     }
@@ -121,7 +121,7 @@ export default class Parser {
             this.eat(); // expect semicolon
             if (isConstant)
                 throw "Expected expression after constant declaration.";
-            return { kind: "VarDeclaration", identifier, constant: false } as VarDeclaration;
+            return { kind: "VarDeclaration", identifier, constant: false, line: this.at().line, column:this.at().column } as VarDeclaration;
         }
 
         this.expect(TokenType.Equals, "Expected equals sign after variable declaration.");
@@ -130,7 +130,9 @@ export default class Parser {
             kind: "VarDeclaration",
             identifier,
             value: this.parse_expr(),
-            constant: isConstant
+            constant: isConstant,
+            line: this.at().line,
+            column:this.at().column
         } as VarDeclaration;
 
         return declaration;
@@ -185,6 +187,8 @@ export default class Parser {
             params,
             body,
             access,
+            line: this.at().line,
+            column:this.at().column
         } as FunctionDeclaration;
         
         return fn;
@@ -197,6 +201,8 @@ export default class Parser {
         return {
             kind: "ReturnStatement",
             value,
+            line: this.at().line,
+            column:this.at().column
         } as ReturnStatement;
     }
 
@@ -246,6 +252,8 @@ export default class Parser {
                 params,
                 body,
                 access: "public",
+                line: this.at().line,
+                column:this.at().column
             } as FunctionDeclaration;
         }
 
@@ -264,6 +272,8 @@ export default class Parser {
             constructor,
             identifier: name,
             body,
+            line: this.at().line,
+            column:this.at().column
         } as ClassDeclaration;
     }
 
@@ -338,7 +348,9 @@ export default class Parser {
             condition,
             body,
             elifs,
-            elseBody
+            elseBody,
+            line: this.at().line,
+            column: this.at().column
         } as IfStatement;
     }
 
@@ -366,6 +378,8 @@ export default class Parser {
             kind: "WhileStatement",
             condition,
             body,
+            line: this.at().line,
+            column:this.at().column
         } as WhileStatement;
     }
 
@@ -398,7 +412,9 @@ export default class Parser {
             decl,
             condition,
             modification,
-            body
+            body,
+            line: this.at().line,
+            column:this.at().column
         } as ForStatement
     }
 
@@ -528,17 +544,33 @@ export default class Parser {
             // Allow for shorthand syntax
             if (this.at().type == TokenType.Comma)  {
                 this.eat(); // eat the comma
-                properties.push({ kind: "Property", key });
+                properties.push({
+                    kind: "Property",
+                    key,
+                    line: this.at().line,
+                    column: this.at().column
+                });
                 continue;
             } else if (this.at().type == TokenType.CloseBrace)  {
-                properties.push({ kind: "Property", key });
+                properties.push({
+                    kind: "Property",
+                    key,
+                    line: this.at().line,
+                    column: this.at().column
+                });
                 continue;
             }
 
             // { key: val }
             this.expect(TokenType.Colon, "Unexpected token found inside object literal. Expected colon.");
             const value = this.parse_expr();
-            properties.push({ kind: "Property", key, value });
+            properties.push({
+                kind: "Property",
+                key,
+                value,
+                line: this.at().line,
+                column: this.at().column
+            });
             
             if (this.at().type != TokenType.CloseBrace) {
                 this.expect(TokenType.Comma, "Expected comma or closing brace after object literal property.");

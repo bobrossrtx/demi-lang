@@ -99,7 +99,7 @@ export function eval_identifier(ident: Identifier, env: Environment): RuntimeVal
 
 export function eval_object_expr(obj: ObjectLiteral, env: Environment): RuntimeVal {
     const objscope = new Environment(env);
-    const object = { type: "object", properties: new Map(), objscope, env} as ObjectVal;
+    const object = { type: "object", properties: new Map(), objscope, env, line: obj.line, column: obj.column} as ObjectVal;
     for (const {key, value} of obj.properties) {
         const runtimeVal = (value == undefined) ? env.lookupVar(key) : evaluate(value, env);
         object.properties.set(key, runtimeVal);
@@ -114,10 +114,6 @@ export function eval_member_expr(expr: MemberExpr, env: Environment): RuntimeVal
 }
 
 export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
-
-    // TODO: FIGURE OUT HOW TO HANDLE INNER SCOPES
-
-
     const args = expr.args.map(arg => {
         // Check if there is a secondary scope inside one of the arguments
         let currentscope: Environment = env;
@@ -140,6 +136,12 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
     if (fn.type == "function") {
         const func = fn as FunctionVal;
         const scope = new Environment(func.declarationEnv);
+
+        if (args.length < func.params.length) {
+            console.log(expr);
+            console.error(`Runtime Error: Function ${func.identifier} expects ${func.params.length} parameters, only found ${args.length} | ${expr.line}:${expr.column}`);
+            Deno.exit(1);
+        }
 
         // Bind arguments to parameters
         for (let i = 0; i < func.params.length; i++) {

@@ -61,19 +61,19 @@ export function eval_if_stmt(stmt: IfStatement, env: Environment): RuntimeVal {
         throw new Error("If statement condition must be a boolean value.");
 
     if (condition.value == true)
-        return eval_program({ kind: "Program", body: stmt.body }, env);
+        return eval_program({ kind: "Program", body: stmt.body, line: stmt.line, column: stmt.column }, env);
     else if (stmt.elifs) {
         for (const elif of stmt.elifs) {
             const elifCondition = evaluate(elif.condition, env);
             if (elifCondition.type != "boolean")
                 throw new Error("Elif statement condition must be a boolean value.");
             if (elifCondition.value == true)
-                return eval_program({ kind: "Program", body: elif.body }, env);
+                return eval_program({ kind: "Program", body: elif.body, line: stmt.line, column: stmt.column }, env);
         }
     }
     
     if (condition.value == false && stmt.elseBody)
-        return eval_program({ kind: "Program", body: stmt.elseBody }, env);
+        return eval_program({ kind: "Program", body: stmt.elseBody, line: stmt.line, column: stmt.column }, env);
     
     return MK_NULL();
 }
@@ -85,7 +85,7 @@ export function eval_while_stmt(stmt: WhileStatement, env: Environment): Runtime
 
     let lastEvaluated: RuntimeVal = MK_NULL();
     while (condition.value == true) {
-        lastEvaluated = eval_program({ kind: "Program", body: stmt.body }, env);
+        lastEvaluated = eval_program({ kind: "Program", body: stmt.body, line: stmt.line, column: stmt.column }, env);
         condition.value = evaluate(stmt.condition, env).value;
     }
     return lastEvaluated;
@@ -100,7 +100,7 @@ export function eval_for_stmt(stmt: ForStatement, env: Environment): RuntimeVal 
 
     let lastEvaluated: RuntimeVal = MK_NULL();
     while (condition.value == true) {
-        lastEvaluated = eval_program({ kind: "Program", body: stmt.body }, env);
+        lastEvaluated = eval_program({ kind: "Program", body: stmt.body, line: stmt.line, column: stmt.column }, env);
         evaluate(stmt.modification, env); // Update the variable through modification
         condition.value = evaluate(stmt.condition, env).value;
     }

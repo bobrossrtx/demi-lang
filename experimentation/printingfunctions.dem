@@ -1,0 +1,5 @@
+fn test(text) {
+    return text;
+}
+
+print(test())
