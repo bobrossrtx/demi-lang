@@ -15,10 +15,10 @@ export function createGlobalEnv(): Environment {
     return env;
 }
 
-function createDisposableEnv(): Environment {
-    const env = new Environment();
-    return env;
-}
+// function createDisposableEnv(): Environment {
+//     const env = new Environment();
+//     return env;
+// }
 
 export default class Environment {
     public parent?: Environment;

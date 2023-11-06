@@ -18,7 +18,8 @@
 
 ----------------- WORKING ----------------
 
-
+- Working on error handling and beautiful error messages
+    (Always updating)
 
 ----------------- WORKING ----------------
 

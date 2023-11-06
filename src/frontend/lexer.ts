@@ -1,6 +1,4 @@
-// let x = 45 + ( foo * bar )
-// [ LetToken, IdentifierToken, EqualsToken, NumberToken]
-import { sleep } from "https://deno.land/x/sleep/mod.ts";
+import { logger } from "../helpers/helpers.ts";
 
 export enum TokenType {
     // Literal Types
@@ -186,7 +184,7 @@ export function tokenize(sourceCode: string): Token[] {
                 // Print error + (character and character code)
                 const charcode = src[0].charCodeAt(0);
 
-                console.log(`Unexpected character: [${charcode}] ${src[0]}`);
+                logger.CustomError("Unexpected Character", `[${charcode}] "${src[0]}" | ${currline}:${currcol}`);
                 Deno.exit(1);
             }
         }

@@ -1,7 +1,8 @@
+import Config from "./config.ts";
 import Parser from "./frontend/parser.ts";
 import { createGlobalEnv } from "./runtime/environment.ts";
 import { evaluate } from "./runtime/interpreter.ts";
-import Config from "./config.ts";
+import { logger } from "./helpers/helpers.ts";
 
 interface Parameter {
     name: string,
@@ -60,7 +61,7 @@ if (Deno.args.length == 0) {
             if (setting) {
                 globalSettings[setting.name] = true;
             } else {
-                console.error(`Unknown parameter '${arg}'`);
+                logger.CustomError("Demi", `Unknown parameter '${arg}'`);
                 Deno.exit(1);
             }
         } else {
@@ -98,7 +99,7 @@ if (Deno.args.length == 0) {
     if (typeof(globalSettings.file) == "string" && globalSettings.file != "") {
         const filename = globalSettings.file;
         await Deno.stat(filename).catch(() => {
-            console.error(`File '${filename}' does not exist.`);
+            logger.CustomError("Demi", `File '${filename}' does not exist.`);
             Deno.exit(1);
         });
 
@@ -113,8 +114,6 @@ async function run(filename: string) {
 
     const input = await Deno.readTextFile(filename);
     const program = parser.produceAST(input);
-
-    console.log(program);
 
     evaluate(program, env);
 }

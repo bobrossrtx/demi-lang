@@ -39,6 +39,7 @@ eval_class_decl,
     eval_while_stmt
     } from './eval/statements.ts';
 import { MK_NUMBER, MK_STRING, RuntimeVal } from './values.ts';
+import { logger } from '../helpers/helpers.ts';
 
 export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
     switch (astNode.kind) {
@@ -57,7 +58,7 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
         case "ObjectLiteral":
             return eval_object_expr(astNode as ObjectLiteral, env);
         case "MemberExpr": {
-            console.log(env)
+            logger.Debug(String(env))
             return eval_member_expr(astNode as MemberExpr, env);
         }
         case "CallExpr":
@@ -86,7 +87,7 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
         // Handle unimplemented ast types as error
         default:
             // @ts-ignore
-            console.log(`Runtime Error: Unimplemented AST Node:\n${JSON.stringify(astNode, null, 2)}`);
+            logger.runtimeError(`Unimplemented AST Node:\n${JSON.stringify(astNode, null, 2)}`);
             Deno.exit(1);
     }
 }

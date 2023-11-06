@@ -1,28 +1,34 @@
 import { AssignmentExpr, BinaryExpr, CallExpr, ComparisonExpr, Identifier, MemberExpr, ObjectLiteral, ReturnStatement } from "../../frontend/ast.ts";
-import Environment from "../environment.ts";
+import { logger } from "../../helpers/helpers.ts";
 import { evaluate } from "../interpreter.ts";
 import { FunctionVal, MK_BOOL, MK_NULL, NativeFnVal, NumberVal, ObjectVal, RuntimeVal } from "../values.ts";
 import { eval_return_statement } from "./statements.ts";
+import Environment from "../environment.ts";
 
-export function eval_numeric_binary_expr(lhs: NumberVal, rhs: NumberVal, operator: string): RuntimeVal {
-    let results = 0;
+export function eval_numeric_binary_expr(lhs: NumberVal, rhs: NumberVal, binop: BinaryExpr): RuntimeVal {
+    let results: number|null = 0;
     
-    if (operator == "+") {
+    if (binop.operator == "+") {
         results = lhs.value + rhs.value;
-    } else if (operator == "-") {
+    } else if (binop.operator == "-") {
         results = lhs.value - rhs.value;
-    } else if (operator == "*") {
+    } else if (binop.operator == "*") {
         results = lhs.value * rhs.value;
-    } else if (operator == "/") {
+    } else if (binop.operator == "/") {
         // TODO: Handle divide by zero
         results = lhs.value / rhs.value;
-    } else if (operator == "%") {
+        if (rhs.value == 0) {
+            logger.RuntimeException("Divide by zero returns undefined");
+            Deno.exit(1)
+        }
+    } else if (binop.operator == "%") {
         results = lhs.value % rhs.value;
     } else {
-        console.error("Runtime Error: Unimplemented operator: ", operator);
+        logger.RuntimeError(`Unimplemented operator - ${binop.operator} | ${binop.line}:${binop.column}`);
         Deno.exit(1);
     }
 
+    if (results == null) return MK_NULL();
     return { type: "number", value: results } as NumberVal;
 }
 
@@ -31,7 +37,7 @@ export function eval_binary_expr(binop: BinaryExpr, env: Environment): RuntimeVa
     const rhs = evaluate(binop.right, env);
     
     if (lhs.type == "number" && rhs.type == "number")
-        return eval_numeric_binary_expr(lhs as NumberVal, rhs as NumberVal, binop.operator);
+        return eval_numeric_binary_expr(lhs as NumberVal, rhs as NumberVal, binop);
 
     // One or both are NULL
     return MK_NULL();
@@ -138,8 +144,7 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
         const scope = new Environment(func.declarationEnv);
 
         if (args.length < func.params.length) {
-            console.log(expr);
-            console.error(`Runtime Error: Function ${func.identifier} expects ${func.params.length} parameters, only found ${args.length} | ${expr.line}:${expr.column}`);
+            logger.RuntimeError(`Function \`${func.identifier}\` expects ${func.params.length} parameters, only found ${args.length} | ${expr.line}:${expr.column}`);
             Deno.exit(1);
         }
 

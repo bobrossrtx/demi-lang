@@ -91,6 +91,8 @@ export interface ForStatement extends Stmt {
 
 export interface Expr extends Stmt {
     kind: NodeType;
+    line: number;
+    column: number;
 }
 
 export interface AssignmentExpr extends Expr {

@@ -2,4 +2,4 @@ fn test(text) {
     return text;
 }
 
-print(test())
+print(test("test"));

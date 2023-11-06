@@ -1,24 +1,5 @@
 import { Token, tokenize, TokenType } from './lexer.ts';
-// Where should I add the conditional expression in the order of precedence?
-// 1. Assignment
-// 2. Conditional
-// 3. Logical OR
-// 4. Logical AND
-// 5. Equality
-// 6. Relational
-// 7. Additive
-// 8. Multiplicative
-// 9. Unary
-// 10. Call
-// 11. Primary
-// 12. Member
-// 13. Primary
-// 14. Identifier
-// 15. Literal
-// 16. Numeric
-// 17. String
-// 18. Object
-
+import { logger } from '../helpers/helpers.ts';
 import {
     // PassExpr,
     AssignmentExpr,
@@ -42,7 +23,7 @@ import {
     WhileStatement,
     ForStatement,
     ClassDeclaration
-    } from './ast.ts';
+} from './ast.ts';
 
 export default class Parser {
     private tokens: Token[] = [];
@@ -63,7 +44,8 @@ export default class Parser {
     private expect(type: TokenType, err: string) {
         const prev = this.tokens.shift() as Token;
         if (!prev || prev.type != type) {
-            throw `Parser Error: ${err} Expecting: ${TokenType[type]}`
+            logger.ParserError(`${err} Expecting: ${TokenType[type]}`);
+            Deno.exit(1);
         }
 
         return prev;
@@ -110,6 +92,9 @@ export default class Parser {
 
     // ( CONST | LET ) IDENTIFIER ( EQUALS EXPR )? SEMICOLON
     private parse_var_decl(): Stmt {
+        const line = this.at().line;
+        const column = this.at().column;
+
         const isConstant = this.eat().type == TokenType.Const;
 
         const identifier = this.expect(
@@ -119,9 +104,11 @@ export default class Parser {
 
         if (this.at().type == TokenType.Semicolon) {
             this.eat(); // expect semicolon
-            if (isConstant)
-                throw "Expected expression after constant declaration.";
-            return { kind: "VarDeclaration", identifier, constant: false, line: this.at().line, column:this.at().column } as VarDeclaration;
+            if (isConstant) {
+                logger.SyntaxError("Expected expression after constant declaration.");
+                Deno.exit(1);
+            }
+            return { kind: "VarDeclaration", identifier, constant: false, line, column } as VarDeclaration;
         }
 
         this.expect(TokenType.Equals, "Expected equals sign after variable declaration.");
@@ -131,8 +118,8 @@ export default class Parser {
             identifier,
             value: this.parse_expr(),
             constant: isConstant,
-            line: this.at().line,
-            column:this.at().column
+            line,
+            column
         } as VarDeclaration;
 
         return declaration;
@@ -140,6 +127,8 @@ export default class Parser {
 
     // FN IDENTIFIER OPEN_PAREN IDENTIFIER* CLOSE_PAREN OPEN_BRACE STMT* CLOSE_BRACE
     private parse_fn_decl(): Stmt {
+        const line = this.at().line;
+        const column = this.at().column;
         this.eat(); // eat the fn keyword
         const name = this.expect(TokenType.Identifier, "Expected identifier after function declaration.").value;
 
@@ -147,8 +136,10 @@ export default class Parser {
         const params: string[] = [];
 
         for (const arg of args) {
-            if (arg.kind != "Identifier")
-                throw "Unexpected token found inside function declaration. Expected identifier.";
+            if (arg.kind != "Identifier") {
+                logger.SyntaxError("Unexpected token found inside function declaration. Expected identifier.");
+                Deno.exit(1);
+            }
 
             params.push((arg as Identifier).symbol);
         }
@@ -187,22 +178,24 @@ export default class Parser {
             params,
             body,
             access,
-            line: this.at().line,
-            column:this.at().column
+            line,
+            column,
         } as FunctionDeclaration;
         
         return fn;
     }
 
     private parse_return_stmt() {
+        const line = this.at().line;
+        const column = this.at().column;
         this.eat(); // eat the return keyword
         const value = this.parse_expr();
 
         return {
             kind: "ReturnStatement",
             value,
-            line: this.at().line,
-            column:this.at().column
+            line,
+            column,
         } as ReturnStatement;
     }
 
@@ -223,8 +216,10 @@ export default class Parser {
             const params: string[] = [];
 
             for (const arg of args) {
-                if (arg.kind != "Identifier")
-                    throw "Unexpected token found inside function declaration. Expected identifier.";
+                if (arg.kind != "Identifier") {
+                    logger.SyntaxError("Unexpected token found inside function declaration. Expected identifier.");
+                    Deno.exit(1);
+                }
 
                 params.push((arg as Identifier).symbol);
             }
@@ -341,8 +336,6 @@ export default class Parser {
             this.expect(TokenType.CloseBrace, "Expected closing brace after else statement.");   
         }
 
-        console.log(elseBody);
-
         return {
             kind: "IfStatement",
             condition,
@@ -446,6 +439,8 @@ export default class Parser {
                     left,
                     right,
                     operator: "==",
+                    line: this.at().line,
+                    column: this.at().column
                 } as ComparisonExpr;
             }
 
@@ -455,6 +450,8 @@ export default class Parser {
                 kind: "AssignmentExpr",
                 assigne: left,
                 value,
+                line: this.at().line,
+                column: this.at().column
             } as AssignmentExpr;
         } else if (this.at().type == TokenType.Not) {
             this.eat(); // eat the not sign
@@ -469,6 +466,8 @@ export default class Parser {
                     left,
                     right,
                     operator: "!=",
+                    line: this.at().line,
+                    column: this.at().column
                 } as ComparisonExpr;
             }
         } else if (this.at().type == TokenType.Less) {
@@ -485,6 +484,8 @@ export default class Parser {
                     left,
                     right,
                     operator: "<=",
+                    line: this.at().line,
+                    column: this.at().column
                 } as ComparisonExpr;
             } else {
                 const right = this.parse_expr();
@@ -494,6 +495,8 @@ export default class Parser {
                     left,
                     right,
                     operator: "<",
+                    line: this.at().line,
+                    column: this.at().column
                 } as ComparisonExpr;
             }
         } else if (this.at().type == TokenType.Greater) {
@@ -510,6 +513,8 @@ export default class Parser {
                     left,
                     right,
                     operator: ">=",
+                    line: this.at().line,
+                    column: this.at().column
                 } as ComparisonExpr;
             } else {
                 const right = this.parse_expr();
@@ -519,6 +524,8 @@ export default class Parser {
                     left,
                     right,
                     operator: ">",
+                    line: this.at().line,
+                    column: this.at().column
                 } as ComparisonExpr;
             }
         }
@@ -527,6 +534,9 @@ export default class Parser {
     }
 
     private parse_object_expr(): Expr {
+        const line = this.at().line;
+        const column = this.at().column;
+
         // { Prop[] }
         if (this.at().type !== TokenType.OpenBrace) {
             return this.parse_additive_expr();
@@ -547,16 +557,16 @@ export default class Parser {
                 properties.push({
                     kind: "Property",
                     key,
-                    line: this.at().line,
-                    column: this.at().column
+                    line,
+                    column,
                 });
                 continue;
             } else if (this.at().type == TokenType.CloseBrace)  {
                 properties.push({
                     kind: "Property",
                     key,
-                    line: this.at().line,
-                    column: this.at().column
+                    line,
+                    column,
                 });
                 continue;
             }
@@ -568,8 +578,8 @@ export default class Parser {
                 kind: "Property",
                 key,
                 value,
-                line: this.at().line,
-                column: this.at().column
+                line, 
+                column, 
             });
             
             if (this.at().type != TokenType.CloseBrace) {
@@ -581,10 +591,14 @@ export default class Parser {
         return {
             kind: "ObjectLiteral",
             properties,
+            line,
+            column,
         } as ObjectLiteral;
     }
 
     private parse_additive_expr(): Expr {
+        const line = this.at().line;
+        const column = this.at().column;
         let left =  this.parse_multiplicitave_expr();
 
         while (this.at().value == "+" || this.at().value == "-") {
@@ -595,6 +609,8 @@ export default class Parser {
                 left,
                 right,
                 operator,
+                line,
+                column,
             } as BinaryExpr;
         }
 
@@ -612,11 +628,16 @@ export default class Parser {
     }
 
     private parse_call_expr(caller: Expr): Expr {
+        const line = this.at().line;
+        const column = this.at().column;
+
         // First ()
         const call_expr: Expr = {
             kind: "CallExpr",
             caller,
             args: this.parse_args(),
+            line,
+            column,
         } as CallExpr;
 
         // Next ()
@@ -648,6 +669,8 @@ export default class Parser {
     }
 
     private parse_member_expr(): Expr {
+        const line = this.at().line;
+        const column = this.at().column;
         let object = this.parse_primary_expr();
 
         while (this.at().type == TokenType.Dot || this.at().type == TokenType.OpenBracket) {
@@ -659,14 +682,17 @@ export default class Parser {
             if (operator.type == TokenType.Dot) {
                 computed = false;
                 property = this.parse_primary_expr();
-                if (property.kind != "Identifier")
-                    throw "Unexpected token found inside member expression. Expected identifier.";
+                if (property.kind != "Identifier") {
+                    logger.SyntaxError("Unexpected token found inside member expression. Expected identifier.");
+                    Deno.exit(1);
+                }
             } else if (operator.type == TokenType.OpenBracket) { // computed values aka object[property]
                 computed = true;
                 property = this.parse_expr();
                 this.expect(TokenType.CloseBracket, "Unexpected token found inside member expression. Expected closing bracket.");
             } else {
-                throw "Unexpected token found inside member expression. Expected dot or opening bracket.";
+                logger.SyntaxError("Unexpected token found inside member expression. Expected dot or opening bracket.");
+                Deno.exit(1);
             }
 
             object = {
@@ -674,15 +700,19 @@ export default class Parser {
                 object,
                 property,
                 computed,
+                line,
+                column,
             } as MemberExpr;
         }
         return object;
     }
 
-    private parse_multiplicitave_expr(): Expr {
+    private parse_multiplicitave_expr(): Expr {     
         let left = this.parse_call_member_expr();
 
         while (this.at().value == "*" || this.at().value == "/" || this.at().value == "%") {
+            const line = this.at().line;
+            const column = this.at().column;
             const operator = this.eat().value;
             const right = this.parse_call_member_expr();
             left = {
@@ -690,6 +720,8 @@ export default class Parser {
                 left,
                 right,
                 operator,
+                line,
+                column,
             } as BinaryExpr;
         }
 
@@ -697,13 +729,15 @@ export default class Parser {
     }
 
     private parse_primary_expr(): Expr {
+        const line = this.at().line;
+        const column = this.at().column;
         const tk = this.at().type;
 
         switch (tk) {
             case TokenType.Identifier:
-                return { kind: "Identifier", symbol: this.eat().value } as Identifier;
+                return { kind: "Identifier", symbol: this.eat().value, line, column } as Identifier;
             case TokenType.Number:
-                return { kind: "NumericLiteral", value: parseFloat(this.eat().value) } as NumericLiteral;
+                return { kind: "NumericLiteral", value: parseFloat(this.eat().value), line, column} as NumericLiteral;
             case TokenType.BinaryOperator: {
                 let negative = false;
                 if (this.eat().value == "-") {
@@ -713,13 +747,13 @@ export default class Parser {
                 let value = parseFloat(this.eat().value);
                 if (negative) value = -Math.abs(value);
 
-                return { kind: "NumericLiteral", value} as NumericLiteral;
+                return { kind: "NumericLiteral", value, line, column} as NumericLiteral;
             }
             case TokenType.String:
-                return { kind: "StringLiteral", value: this.eat().value } as StringLiteral;
+                return { kind: "StringLiteral", value: this.eat().value , line, column} as StringLiteral;
             case TokenType.Semicolon:
                 this.eat(); // eat the semicolon
-                return { kind: "NullLiteral" } as NullLiteral;
+                return { kind: "NullLiteral", line, column} as NullLiteral;
             case TokenType.Return:
                 return this.parse_return_stmt();
             case TokenType.OpenParen: {
@@ -733,8 +767,7 @@ export default class Parser {
             }
             
             default:
-                console.error(`Unexpected token found during parsing! { value: "${this.at().value}", type: ${this.at().type} }`);
-                // console.error(`Line: ${this.at().line}, Column: ${this.at().column}``)
+                logger.ParserError(`Unexpected token found during parsing! { value: "${this.at().value}", type: ${this.at().type} }`);
                 Deno.exit(1);
         }
     }

@@ -1,7 +1,8 @@
 import { ClassDeclaration, ForStatement, FunctionDeclaration, IfStatement, Program, ReturnStatement, VarDeclaration, WhileStatement } from "../../frontend/ast.ts";
-import Environment from "../environment.ts";
+import { logger } from "../../helpers/helpers.ts";
 import { evaluate } from "../interpreter.ts";
 import { RuntimeVal,MK_NULL, FunctionVal, ClassVal } from "../values.ts";
+import Environment from "../environment.ts";
 
 export function eval_program(program: Program, env: Environment): RuntimeVal {
     let lastEvaluated: RuntimeVal = MK_NULL();
@@ -57,8 +58,10 @@ export function eval_return_statement(stmt: ReturnStatement, env: Environment): 
 
 export function eval_if_stmt(stmt: IfStatement, env: Environment): RuntimeVal {
     const condition = evaluate(stmt.condition, env);
-    if (condition.type != "boolean")
-        throw new Error("If statement condition must be a boolean value.");
+    if (condition.type != "boolean") {
+        logger.RuntimeError("If statement condition must be a boolean value.");
+        Deno.exit(1);
+    }
 
     if (condition.value == true)
         return eval_program({ kind: "Program", body: stmt.body, line: stmt.line, column: stmt.column }, env);
@@ -66,7 +69,7 @@ export function eval_if_stmt(stmt: IfStatement, env: Environment): RuntimeVal {
         for (const elif of stmt.elifs) {
             const elifCondition = evaluate(elif.condition, env);
             if (elifCondition.type != "boolean")
-                throw new Error("Elif statement condition must be a boolean value.");
+                logger.RuntimeError("Elif statement condition must be a boolean value.");
             if (elifCondition.value == true)
                 return eval_program({ kind: "Program", body: elif.body, line: stmt.line, column: stmt.column }, env);
         }
@@ -80,8 +83,10 @@ export function eval_if_stmt(stmt: IfStatement, env: Environment): RuntimeVal {
 
 export function eval_while_stmt(stmt: WhileStatement, env: Environment): RuntimeVal {
     const condition = evaluate(stmt.condition, env);
-    if (condition.type != "boolean")
-        throw new Error("While statement condition must be a boolean value.");
+    if (condition.type != "boolean") {
+        logger.RuntimeError("While statement condition must be a boolean value.");
+        Deno.exit(1);
+    }
 
     let lastEvaluated: RuntimeVal = MK_NULL();
     while (condition.value == true) {
@@ -95,8 +100,10 @@ export function eval_for_stmt(stmt: ForStatement, env: Environment): RuntimeVal 
     evaluate(stmt.decl, env); // Evaluate the variable declaration (puts the variable in the env)
     const condition = evaluate(stmt.condition, env); // Evaluates the condition
 
-    if (condition.type != "boolean")
-        throw new Error("For statement condition should return a boolean value.");
+    if (condition.type != "boolean") {
+        logger.RuntimeError("For statement condition must be a boolean value.");
+        Deno.exit(1);
+    }
 
     let lastEvaluated: RuntimeVal = MK_NULL();
     while (condition.value == true) {
