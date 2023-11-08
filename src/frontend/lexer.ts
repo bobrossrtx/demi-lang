@@ -76,6 +76,23 @@ function isskippable(str: string): boolean {
     return str == " " || str == "\t" || str == "\n" || str == "\r";
 }
 
+function buildStringToken(src: string[], currcol: number): [string, number] {
+    const tempcurrcol = currcol;
+
+    const doubleQuote = src[0] == '"';
+
+    src.shift(); // Skip the opening quote
+    let str = "";
+
+    while (src.length > 0 && src[0] != (doubleQuote ? '"' : "'")) {
+        str += src.shift();
+        currcol += 1;
+    }
+    
+    src.shift(); // Skip the closing quote
+    return [str, tempcurrcol]
+}
+
 export function tokenize(sourceCode: string): Token[] {
     const tokens = new Array<Token>();
     const src = sourceCode.split("");
@@ -97,7 +114,7 @@ export function tokenize(sourceCode: string): Token[] {
         else if (src[0] == ')') { tokens.push(token(src.shift(), TokenType.CloseParen, currline, currcol)); currcol += 1; }
         else if (src[0] == '{') { tokens.push(token(src.shift(), TokenType.OpenBrace, currline, currcol)); currcol += 1; }
         else if (src[0] == '}') { tokens.push(token(src.shift(), TokenType.CloseBrace, currline, currcol)); currcol += 1; }
-        else if (src[0] == '[') { tokens.push(token(src.shift(), TokenType.OpenBracket, currline, currcol)); currcol += 1; }
+        else if (src[0] == '[') { tokens.push(token(src.shift(), TokenType.OpenBracket, currline, currcol)); currcol += 1;}
         else if (src[0] == ']') { tokens.push(token(src.shift(), TokenType.CloseBracket, currline, currcol)); currcol += 1; }
         else if (src[0] == '+' || src[0] == '-' || src[0] == '*' || src[0] == '/' || src[0] == '%') { tokens.push(token(src.shift(), TokenType.BinaryOperator, currline, currcol)); currcol += 1; }
         else if (src[0] == '=') { tokens.push(token(src.shift(), TokenType.Equals, currline, currcol)); currcol += 1; }
@@ -110,19 +127,7 @@ export function tokenize(sourceCode: string): Token[] {
         else if (src[0] == ':') { tokens.push(token(src.shift(), TokenType.Colon, currline, currcol)); currcol += 1; }
         else if (src[0] == '"' || src[0] == "'") {
             // Build string token
-            const tempcurrcol = currcol;
-
-            const doubleQuote = src[0] == '"';
-
-            src.shift(); // Skip the opening quote
-            let str = "";
-
-            while (src.length > 0 && src[0] != (doubleQuote ? '"' : "'")) {
-                str += src.shift();
-                currcol += 1;
-            }
-            
-            src.shift(); // Skip the closing quote
+            const [str, tempcurrcol] = buildStringToken(src, currcol);
             tokens.push(token(str, TokenType.String, currline, tempcurrcol));
         }
         else if (src[0] == '#') {

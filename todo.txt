@@ -1,8 +1,6 @@
 ------------------ TODO ------------------
 
-
-- Add support for Arrays
-- Add support for boolean operators (ie &&, ||, !) (If statements)
+- Add support for boolean operators (ie &&, ||, !) (combines comparison statements)
 
 - Create an Icon for the .dem files
 
@@ -19,6 +17,8 @@
 
 - Working on error handling and beautiful error messages
     (Always updating)
+
+- Add support for Arrays
 
 ----------------- WORKING ----------------
 

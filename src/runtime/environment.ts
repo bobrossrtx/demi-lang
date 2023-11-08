@@ -1,3 +1,4 @@
+import { logger } from "../helpers/helpers.ts";
 import { SetupStdlibFunctions } from "./stdlib/stdlib.ts";
 import { MK_BOOL, MK_NULL, RuntimeVal } from "./values.ts";
 
@@ -32,8 +33,10 @@ export default class Environment {
     }
 
     public declareVar(varname: string, value: RuntimeVal, constant: boolean): RuntimeVal {
-        if (this.variables.has(varname))
-            throw `Cannot declare variable ${varname}. It already exists in this scope.`;
+        if (this.variables.has(varname)) {
+            logger.RuntimeError(`Cannot declare variable ${varname}. It already exists in this scope.`);
+            Deno.exit(1);
+        }
         this.variables.set(varname, value);
 
         if (constant)
@@ -44,8 +47,10 @@ export default class Environment {
 
     public assignVar(varname: string, value: RuntimeVal): RuntimeVal {
         const env = this.resolve(varname);
-        if (env.constants.has(varname))
-            throw `Cannot assign value to ${varname} as it is a constant.`;
+        if (env.constants.has(varname)) {
+            logger.RuntimeError(`Cannot assign value to ${varname} as it is a constant.`);
+            Deno.exit(1);
+        }
 
         env.variables.set(varname, value);
         return value;
@@ -61,6 +66,7 @@ export default class Environment {
             return this;
         if (this.parent)
             return this.parent.resolve(varname);
-        throw `Cannot resolve variable ${varname}. It does not exist in this scope.`;
+        logger.RuntimeError(`Cannot resolve variable ${varname}. It does not exist in this scope.`);
+        Deno.exit(1);
     }
 }

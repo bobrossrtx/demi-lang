@@ -22,7 +22,8 @@ import {
     IfStatement,
     WhileStatement,
     ForStatement,
-    ClassDeclaration
+    ClassDeclaration,
+    ArrayLiteral
 } from './ast.ts';
 
 export default class Parser {
@@ -444,6 +445,12 @@ export default class Parser {
                 } as ComparisonExpr;
             }
 
+            // Check if it is an array
+            if (this.at().type == TokenType.OpenBrace) {
+                console.log(this.at());
+            }
+            // console.log(this.at());
+
             const value = this.parse_assignment_expr();
 
             return {
@@ -661,11 +668,32 @@ export default class Parser {
 
     private parse_arguments_list(): Expr[] {
         const args = [this.parse_assignment_expr()];
-        
         while (this.not_eof() && this.at().type == TokenType.Comma && this.eat())
             args.push(this.parse_assignment_expr());
-
         return args;
+    }
+
+    private parse_array(): Expr {
+        const line = this.at().line;
+        const column = this.at().column;
+        this.expect(TokenType.OpenBracket, "Unexpected token found inside array. Expected opening bracket.");
+        const array: Expr = {
+            kind: "ArrayLiteral",
+            elements: this.parse_array_elements(),
+            line,
+            column
+        } as ArrayLiteral;
+
+        this.expect(TokenType.CloseBracket, "Expected closing bracked at end of array.");
+
+        return array;
+    }
+
+    private parse_array_elements(): Expr[] {
+        const elements = [this.parse_expr()]
+        while (this.not_eof() && this.at().type == TokenType.Comma && this.eat())
+            elements.push(this.parse_expr());
+        return elements;
     }
 
     private parse_member_expr(): Expr {
@@ -740,13 +768,9 @@ export default class Parser {
                 return { kind: "NumericLiteral", value: parseFloat(this.eat().value), line, column} as NumericLiteral;
             case TokenType.BinaryOperator: {
                 let negative = false;
-                if (this.eat().value == "-") {
-                    negative = true;
-                }
-
+                if (this.eat().value == "-") negative = true;
                 let value = parseFloat(this.eat().value);
                 if (negative) value = -Math.abs(value);
-
                 return { kind: "NumericLiteral", value, line, column} as NumericLiteral;
             }
             case TokenType.String:
@@ -756,6 +780,8 @@ export default class Parser {
                 return { kind: "NullLiteral", line, column} as NullLiteral;
             case TokenType.Return:
                 return this.parse_return_stmt();
+            case TokenType.OpenBracket:
+                return this.parse_array();
             case TokenType.OpenParen: {
                 this.eat(); // eat the open paren
                 const expr = this.parse_expr();

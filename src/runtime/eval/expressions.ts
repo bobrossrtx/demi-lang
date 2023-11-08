@@ -1,7 +1,7 @@
-import { AssignmentExpr, BinaryExpr, CallExpr, ComparisonExpr, Identifier, MemberExpr, ObjectLiteral, ReturnStatement } from "../../frontend/ast.ts";
+import { ArrayLiteral, AssignmentExpr, BinaryExpr, CallExpr, ComparisonExpr, Identifier, MemberExpr, ObjectLiteral, ReturnStatement } from "../../frontend/ast.ts";
 import { logger } from "../../helpers/helpers.ts";
 import { evaluate } from "../interpreter.ts";
-import { FunctionVal, MK_BOOL, MK_NULL, NativeFnVal, NumberVal, ObjectVal, RuntimeVal } from "../values.ts";
+import { ArrayVal, FunctionVal, MK_BOOL, MK_NULL, NativeFnVal, NumberVal, ObjectVal, RuntimeVal } from "../values.ts";
 import { eval_return_statement } from "./statements.ts";
 import Environment from "../environment.ts";
 
@@ -112,6 +112,19 @@ export function eval_object_expr(obj: ObjectLiteral, env: Environment): RuntimeV
         objscope.declareVar(key, runtimeVal, false);
     }
     return object;
+}
+
+export function eval_array_expr(array: ArrayLiteral, env: Environment): RuntimeVal {
+    const elements = array.elements.map((element) => {
+        return evaluate(element, env);
+    })
+
+    const arr: RuntimeVal = {
+        type: "array",
+        value: elements
+    } as ArrayVal;
+
+    return arr;
 }
 
 export function eval_member_expr(expr: MemberExpr, env: Environment): RuntimeVal {

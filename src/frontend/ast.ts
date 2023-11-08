@@ -24,6 +24,7 @@ export type NodeType =
     | "ObjectLiteral"
     | "NumericLiteral"
     | "StringLiteral"
+    | "ArrayLiteral"
     | "Identifier"
     | "NullLiteral";
 
@@ -162,4 +163,9 @@ export interface ObjectLiteral extends Expr {
 
 export interface NullLiteral extends Expr {
     kind: "NullLiteral";
+}
+
+export interface ArrayLiteral extends Expr {
+    kind: "ArrayLiteral";
+    elements: Expr[];
 }

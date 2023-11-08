@@ -41,8 +41,7 @@ export function SetupStdlibFunctions(env: Environment) {
     // env.declareVar("panic", MK_NATIVE_FN((args, _scope) => {
 
     env.declareVar("get_globals", MK_NATIVE_FN((args, _scope) => {
-        // return MK_OBJECT(env.variables);
-        let obj = MK_OBJECT(env.variables);
+        const obj = MK_OBJECT(env.variables);
         return obj;
     }), true);
 }

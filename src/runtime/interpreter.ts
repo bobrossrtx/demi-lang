@@ -1,6 +1,7 @@
 // deno-lint-ignore-file ban-ts-comment
 import Environment from './environment.ts';
 import {
+ArrayLiteral,
     AssignmentExpr,
     BinaryExpr,
     CallExpr,
@@ -21,6 +22,7 @@ import {
     WhileStatement
     } from '../frontend/ast.ts';
 import {
+eval_array_expr,
     eval_assignment_expr,
     eval_binary_expr,
     eval_call_expr,
@@ -57,6 +59,8 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_program(astNode as Program, env);
         case "ObjectLiteral":
             return eval_object_expr(astNode as ObjectLiteral, env);
+        case "ArrayLiteral":
+            return eval_array_expr(astNode as ArrayLiteral, env)
         case "MemberExpr": {
             logger.Debug(String(env))
             return eval_member_expr(astNode as MemberExpr, env);
@@ -87,7 +91,7 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
         // Handle unimplemented ast types as error
         default:
             // @ts-ignore
-            logger.runtimeError(`Unimplemented AST Node:\n${JSON.stringify(astNode, null, 2)}`);
+            logger.RuntimeError(`Unimplemented AST Node:\n${JSON.stringify(astNode, null, 2)}`);
             Deno.exit(1);
     }
 }
