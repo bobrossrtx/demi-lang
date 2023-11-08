@@ -69,7 +69,7 @@ function isalpha(src: string): boolean {
 }
 
 function isint(src: string): boolean {
-    return /^[0-9]+$/.test(src);
+    return /^[0-9.]+$/.test(src);
 }
 
 function isskippable(str: string): boolean {

@@ -146,6 +146,9 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
         if (args.length < func.params.length) {
             logger.RuntimeError(`Function \`${func.identifier}\` expects ${func.params.length} parameters, only found ${args.length} | ${expr.line}:${expr.column}`);
             Deno.exit(1);
+        } else if (args.length > func.params.length) {
+            logger.RuntimeError(`Function \`${func.identifier}\` expects ${func.params.length} parameters, found ${args.length} instead | ${expr.line}:${expr.column}`);
+            Deno.exit(1);
         }
 
         // Bind arguments to parameters

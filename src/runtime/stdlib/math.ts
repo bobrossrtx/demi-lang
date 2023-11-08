@@ -32,17 +32,17 @@ export function SetupMathFunctions(env: Environment) {
 
     /// TODO: uncomment when floats are implemented
     // floor()
-    // env.declareVar("floor", MK_NATIVE_FN((args, scope) => {
-    //     if (args.length != 1)
-    //         throw `floor() expects 1 argument, got ${args.length}.`;
+    env.declareVar("floor", MK_NATIVE_FN((args, scope) => {
+        if (args.length != 1)
+            throw `floor() expects 1 argument, got ${args.length}.`;
 
-    //     if (args[0].type != "number")
-    //         throw `floor() expects argument 1 to be a number, got ${args[0].type}.`;
+        if (args[0].type != "number")
+            throw `floor() expects argument 1 to be a number, got ${args[0].type}.`;
 
-    //     const num = args[0] as NumberVal;
+        const num = args[0] as NumberVal;
         
-    //     return MK_NUMBER(Math.floor(num.value));
-    // }), true);
+        return MK_NUMBER(Math.floor(num.value));
+    }), true);
 
     // max()
     env.declareVar("max", MK_NATIVE_FN((args, scope) => {
