@@ -8,7 +8,8 @@
 - Add support for importing modules
 - Add support for importing files
 
-- Add support for classes
+- Fix objects (Required)
+- Add support for classes (Requirments: objects)
 
 ------------------ TODO ------------------
 
