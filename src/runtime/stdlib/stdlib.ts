@@ -1,5 +1,6 @@
+import { logger } from "../../helpers/helpers.ts";
 import Environment from "../environment.ts";
-import { MK_NATIVE_FN, MK_OBJECT, NumberVal } from "../values.ts";
+import { MK_NATIVE_FN, MK_NULL, MK_OBJECT, NumberVal } from "../values.ts";
 import { SetupMathFunctions } from "./math.ts";
 import { SetupStdioFunctions } from "./stdio.ts";
 import { SetupTimeFunctions } from "./time.ts";
@@ -10,18 +11,21 @@ export function SetupStdlibFunctions(env: Environment) {
     SetupTimeFunctions(env);
 
     // TODO: uncomment when comparison operators are implemented
-    // env.declareVar("assert", MK_NATIVE_FN((args, _scope) => {
-    //     if (args.length != 1)
-    //         throw `assert() expects 1 argument, got ${args.length}.`;
+    env.declareVar("assert", MK_NATIVE_FN((args, _scope) => {
+        if (args.length < 1)
+            throw `assert() expects at least 1 argument, got ${args.length}.`;
+        let customErrorMessage = false;
+        if (args.length == 2) customErrorMessage = true;
 
-    //     if (args[0].type != "boolean")
-    //         throw `assert() expects argument 1 to be a boolean, got ${args[0].type}.`;
+        if (args[0].type != "boolean")
+            throw `assert() expects argument 1 to be a boolean, got ${args[0].type}.`;
 
-    //     if (!args[0].value)
-    //         throw `Assertion failed.`;
+        if (!args[0].value)
+            if (customErrorMessage) logger.AssertionError(args[1].value);
+            else logger.AssertionError(`Assertion failed.`);
 
-    //     return MK_NULL();
-    // }), true);
+        return MK_NULL();
+    }), true);
 
     env.declareVar("exit", MK_NATIVE_FN((args, _scope) => {
         // If no arguments, exit with code 0
@@ -40,7 +44,7 @@ export function SetupStdlibFunctions(env: Environment) {
 
     // env.declareVar("panic", MK_NATIVE_FN((args, _scope) => {
 
-    env.declareVar("get_globals", MK_NATIVE_FN((args, _scope) => {
+    env.declareVar("get_globals", MK_NATIVE_FN((_args, _scope) => {
         const obj = MK_OBJECT(env.variables);
         return obj;
     }), true);

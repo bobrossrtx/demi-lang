@@ -58,6 +58,7 @@
 - Add support for negative numbers
 - Add support for floating point numbers
 - Add support for Arrays
+- Added the assert function
 
 - Added a temporary fix to sleep_ms function (wait until imports implemented)
 

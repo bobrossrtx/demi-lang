@@ -29,8 +29,6 @@ export function SetupMathFunctions(env: Environment) {
 
         return MK_NUMBER(Math.ceil(num.value));
     }), true);
-
-    /// TODO: uncomment when floats are implemented
     // floor()
     env.declareVar("floor", MK_NATIVE_FN((args, scope) => {
         if (args.length != 1)

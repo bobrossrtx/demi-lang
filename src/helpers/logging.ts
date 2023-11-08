@@ -58,4 +58,12 @@ export default class Logger {
 
         console.log("\x1B[1m\x1B[31m"+customErrorIdentifier+" Error: \x1B[0m"+outString);
     }
+
+    public AssertionError(...args: any[]) {
+        let outString = "";
+        for (let i = 0; i < args.length; i++)
+            outString += args[i];
+
+        console.log(`\x1B[1m\x1B[31mAssert Error: \x1B[0m`+outString);
+    }
 }

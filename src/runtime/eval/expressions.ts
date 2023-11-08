@@ -15,7 +15,6 @@ export function eval_numeric_binary_expr(lhs: NumberVal, rhs: NumberVal, binop: 
     } else if (binop.operator == "*") {
         results = lhs.value * rhs.value;
     } else if (binop.operator == "/") {
-        // TODO: Handle divide by zero
         results = lhs.value / rhs.value;
         if (rhs.value == 0) {
             logger.RuntimeException("Divide by zero returns undefined");
