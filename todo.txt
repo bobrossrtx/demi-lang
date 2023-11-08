@@ -1,6 +1,6 @@
 ------------------ TODO ------------------
 
-- Add support for negative numbers
+
 - Add support for Arrays
 - Add support for boolean operators (ie &&, ||, !) (If statements)
 
@@ -52,6 +52,7 @@
 - Add support for while loops
 - Add support for comparison operators (ie <, >, <=, >=, ==, !=)
 - Add support for 'for' loops
+- Add support for negative numbers
 - Add support for floating point numbers
 
 - Added a temporary fix to sleep_ms function (wait until imports implemented)
