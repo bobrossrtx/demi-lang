@@ -10,7 +10,11 @@ export function SetupStdlibFunctions(env: Environment) {
     SetupMathFunctions(env);
     SetupTimeFunctions(env);
 
-    // TODO: uncomment when comparison operators are implemented
+    /* TODO (default imports added to global scope here??)
+     *  - Any stdlib methods or vars that are defined in a .dem file can be
+     *    evaluated here and added to the global scope
+    */
+
     env.declareVar("assert", MK_NATIVE_FN((args, _scope) => {
         if (args.length < 1)
             throw `assert() expects at least 1 argument, got ${args.length}.`;

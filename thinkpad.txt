@@ -28,6 +28,9 @@
     Do we have GLOBALS & LOCALS (To be implemented if so)
     - Globals can be seen by all programs no matter what
     - Locals can be seen by 1 program by defining or importing
+    - Local scope = program file
+    - Global scope = all programs
+    - Globals also import default imports (eg, stdio, stdlib, math, time)
     - Exports are added to an array of Demi variables which can be appended onto the programs locals after importing
 
 --------------------------------------------------------------------------------

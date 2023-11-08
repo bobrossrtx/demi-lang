@@ -5,8 +5,6 @@
 - Add array methods (Variables with type ArrayVal will have callable methods)
     - EG: `let i = [1, 2]; i.push(3);`
 
-- Create an Icon for the .dem files
-
 - Add support for importing modules
 - Add support for importing files
 
@@ -21,7 +19,7 @@
 - Working on error handling and beautiful error messages
     (Always updating)
 
-- 
+- Create an Icon for the .dem files (created, just trying to distrubute to popular icon packs)
 
 ----------------- WORKING ----------------
 
