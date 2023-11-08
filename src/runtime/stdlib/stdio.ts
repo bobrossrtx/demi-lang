@@ -1,4 +1,5 @@
 import Environment from "../environment.ts";
+import { ArrayVal } from "../values.ts";
 import { MK_NATIVE_FN, MK_NULL } from "../values.ts";
 
 export function SetupStdioFunctions(env: Environment) {
@@ -6,15 +7,21 @@ export function SetupStdioFunctions(env: Environment) {
     env.declareVar("print", MK_NATIVE_FN((args, _scope) => {
         // There are infinite args for print
         let outstring = "";
-        console.log(args);
+        // console.log(args);
 
         if (args.length == 0) console.log("");
         else if (args.length > 0) {
             for (let i = 0; i < args.length; i++) {
                 // outstring += args[i]?.value
                 if (args[i].type == "array") {
-                    // TODO: catchup here
-                    for (let element in (args[i].value as ))
+                    // TODO: Potentially not effecient, make faster
+                    const arr = []
+                    for (const element in (args[i] as ArrayVal).value) {
+                        arr.push((args[i] as ArrayVal).value[element].value)
+                    }
+                    outstring += `[ ${arr.join(", ")} ]`;
+                } else {
+                    outstring += args[i].value;
                 }
             }
 

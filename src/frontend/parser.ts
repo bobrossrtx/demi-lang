@@ -691,8 +691,13 @@ export default class Parser {
 
     private parse_array_elements(): Expr[] {
         const elements = [this.parse_expr()]
-        while (this.not_eof() && this.at().type == TokenType.Comma && this.eat())
+        while (this.not_eof() && this.at().type == TokenType.Comma && this.eat()) {
+            if (this.at().type == TokenType.CloseBracket) {
+                logger.SyntaxError(`Expected element as part of array | ${this.at().line}:${this.at().column}`)
+                Deno.exit(1);
+            }
             elements.push(this.parse_expr());
+        }
         return elements;
     }
 

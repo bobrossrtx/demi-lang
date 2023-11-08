@@ -2,6 +2,9 @@
 
 - Add support for boolean operators (ie &&, ||, !) (combines comparison statements)
 
+- Add array methods (Variables with type ArrayVal will have callable methods)
+    - EG: `let i = [1, 2]; i.push(3);`
+
 - Create an Icon for the .dem files
 
 - Add support for importing modules
@@ -18,7 +21,7 @@
 - Working on error handling and beautiful error messages
     (Always updating)
 
-- Add support for Arrays
+- 
 
 ----------------- WORKING ----------------
 
@@ -54,6 +57,7 @@
 - Add support for 'for' loops
 - Add support for negative numbers
 - Add support for floating point numbers
+- Add support for Arrays
 
 - Added a temporary fix to sleep_ms function (wait until imports implemented)
 
