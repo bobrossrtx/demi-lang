@@ -6,4 +6,4 @@ fn rand_range(x, y) {
     return x + (y - x) * random(get_time()) % max(x, y);
 }
 
-print(rand_range(1, 100));
+print(rand_range(1, 10));

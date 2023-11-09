@@ -1,4 +1,5 @@
 // deno-lint-ignore-file no-unused-vars
+import { logger } from "../../helpers/helpers.ts";
 import Environment from "../environment.ts";
 import { MK_NATIVE_FN, NumberVal } from "../values.ts";
 import { MK_NUMBER } from "../values.ts";
@@ -238,4 +239,31 @@ export function SetupMathFunctions(env: Environment) {
     env.declareVar("time", MK_NATIVE_FN((_args, _scope) => {
         return MK_NUMBER(Date.now());
     }), true);
+
+    // random(seed)
+    // env.declareVar("random", MK_NATIVE_FN((args, _scope) => {
+    //     if (args.length != 1) return MK_NUMBER(Math.random());
+    //     return (MK_NUMBER(((args[0] as NumberVal).value * 9301 + 49297) % 233280));
+    // }), true);
+
+    // env.declareVar("rand_range", MK_NATIVE_FN((args, _scope) => {
+    //     if (args.length != 2) {
+    //         logger.RuntimeError(`rand_range() expects 2 arguments only found ${args.length} arguments`);
+    //         Deno.exit(1);
+    //     } else {
+    //         const x = args[0]
+    //         console.log(x);
+    //         const y = args[0]
+    //         console.log(y);
+
+    //         if (x.type == "number" && y.type == "number")
+    //             // return MK_NUMBER((x.value + (x.value - y.value) * (Date.now() * 9301 + 49297) % 233280) % Math.max(x.value, y.value));
+    //             Deno.exit(0);
+    //         console.log("poo");
+    //         Deno.exit(1);
+    //     }
+    // }), true)
+// # fn rand_range(x, y) {
+// # return x + (y - x) * random(get_time()) % max(x, y);
+// # }
 }

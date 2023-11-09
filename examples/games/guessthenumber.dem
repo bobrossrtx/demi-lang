@@ -1,0 +1,64 @@
+# Guess the number game example
+fn rand_range(x, y) {
+    return x + (y - x) * (get_time() * 9301 + 49297) % 233280 % max(x, y);
+}
+
+# Temporary kinda working hotter_colder function
+let hc = false;
+fn hotter_colder(currRandNum, guess, lastGuess) {
+    if (guess < currRandNum) { # 0 < 5 < 10
+        if (guess > lastGuess) { # 10 > 4 < 5
+            hc = true;
+        } else {
+            hc = false;
+        }
+    } else {
+        if (guess > lastGuess) {
+            hc = false;
+        } else {
+            hc = true;
+        }
+    }
+}
+
+fn gameloop() {
+    let rangemin = to_number(input("Please choose your minimum number range:"));
+    let rangemax = to_number(input("Please choose your maximum number range:"));
+
+    let playAgain = true;
+    let currentRandomNum = rand_range(rangemin, rangemax);
+    let guess = "";
+    let tries = 5;
+    let playAgainString = "";
+    let lastGuess = "";
+    while (playAgain) {
+        while (tries > 0) {
+            guess = input("Please guess the random number:");
+            if (guess == to_string(currentRandomNum)) {
+                print("Well done!");
+                currentRandomNum = rand_range(0, 10);
+                tries = 0;
+            } else {
+                tries = tries - 1;
+                print("Only ",tries," tries left!");
+                hotter_colder(currentRandomNum, to_number(guess), to_number(lastGuess));
+                if (hc) {
+                    print("Hotter");
+                } else {
+                    print("Colder");
+                }
+            }
+            lastGuess = guess;
+        }
+        tries = 5;
+
+        print("")
+        playAgainString = input("Would you like to play again? <Y/n>:");
+        print("");
+
+        if (playAgainString == "n") { playAgain = false; } 
+        elif (playAgainString == "N") { playAgain = false; }
+    }
+}
+
+gameloop();
