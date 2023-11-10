@@ -26,12 +26,13 @@ fn gameloop() {
     let rangemax = to_number(input("Please choose your maximum number range:"));
 
     let playAgain = true;
-    let currentRandomNum = rand_range(rangemin, rangemax);
     let guess = "";
     let tries = 5;
     let playAgainString = "";
     let lastGuess = "";
+    let currentRandomNum = null
     while (playAgain) {
+        currentRandomNum = rand_range(rangemin, rangemax);
         while (tries > 0) {
             guess = input("Please guess the random number:");
             if (guess == to_string(currentRandomNum)) {
@@ -42,14 +43,17 @@ fn gameloop() {
                 tries = tries - 1;
                 print("Only ",tries," tries left!");
                 hotter_colder(currentRandomNum, to_number(guess), to_number(lastGuess));
-                if (hc) {
-                    print("Hotter");
-                } else {
-                    print("Colder");
+                if (tries != 0) {
+                    if (hc) {
+                        print("Hotter");
+                    } else {
+                        print("Colder");
+                    }
                 }
             }
             lastGuess = guess;
         }
+        print("The answer was: ",currentRandomNum);
         tries = 5;
 
         print("")
