@@ -1,0 +1,9 @@
+let i = 10;
+let x = 10;
+if (i < x) {
+    print("Less than");
+} elif (i > x) {
+    print("More than");
+} else {
+    print("Equal to");
+}

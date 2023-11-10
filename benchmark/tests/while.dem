@@ -1,13 +1,4 @@
-let num = 0;
-
-fn reach(x) {
-    let y = 0;
-
-    while (y < x) {
-        y = y + 1
-        print(y)
-    }
-
-    return y;
+let x = 0;
+while (x <= 1000) {
+    x = x + 2;
 }
-reach(1000)
