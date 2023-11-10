@@ -24,13 +24,13 @@ fn hotter_colder(currRandNum, guess, lastGuess) {
 fn gameloop() {
     let rangemin = to_number(input("Please choose your minimum number range:"));
     let rangemax = to_number(input("Please choose your maximum number range:"));
-
     let playAgain = true;
     let guess = "";
     let tries = 5;
     let playAgainString = "";
     let lastGuess = "";
     let currentRandomNum = null
+    
     while (playAgain) {
         currentRandomNum = rand_range(rangemin, rangemax);
         while (tries > 0) {
