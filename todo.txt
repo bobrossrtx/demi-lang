@@ -1,5 +1,11 @@
 ------------------ TODO ------------------
 
+- Create an installer for windows executable (downloadable from website)
+    - Software:
+        - Inno:         https://jrsoftware.org/isinfo.php
+        - Nullsoft:     https://en.wikipedia.org/wiki/Nullsoft_Scriptable_Install_System
+        
+
 - Add support for boolean operators (ie &&, ||, !) (combines comparison statements)
 
 - Add array methods (Variables with type ArrayVal will have callable methods)

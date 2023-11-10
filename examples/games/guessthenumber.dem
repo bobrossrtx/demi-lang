@@ -22,26 +22,34 @@ fn hotter_colder(currRandNum, guess, lastGuess) {
 }
 
 fn gameloop() {
+    # Define variables that we will use later
     let rangemin = to_number(input("Please choose your minimum number range:"));
     let rangemax = to_number(input("Please choose your maximum number range:"));
     let playAgain = true;
     let guess = "";
-    let tries = 5;
+    let tries = 8;
     let playAgainString = "";
     let lastGuess = "";
-    let currentRandomNum = null
-    
+    let currentRandomNum = null;
+
+    # The game loop (controlled wether player wants to play again)
     while (playAgain) {
+        # Generate the random number for the game
         currentRandomNum = rand_range(rangemin, rangemax);
+        
         while (tries > 0) {
+            # Take the user input for the current guess
             guess = input("Please guess the random number:");
+
             if (guess == to_string(currentRandomNum)) {
                 print("Well done!");
-                currentRandomNum = rand_range(0, 10);
                 tries = 0;
             } else {
+                # Subtract 1 try
                 tries = tries - 1;
                 print("Only ",tries," tries left!");
+                
+                # Check wether the current guess is hotter or colder
                 hotter_colder(currentRandomNum, to_number(guess), to_number(lastGuess));
                 if (tries != 0) {
                     if (hc) {
@@ -53,7 +61,7 @@ fn gameloop() {
             }
             lastGuess = guess;
         }
-        print("The answer was: ",currentRandomNum);
+        print("The answer was: ", currentRandomNum);
         tries = 5;
 
         print("")
