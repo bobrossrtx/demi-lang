@@ -73,18 +73,36 @@ function isint(src: string): boolean {
 }
 
 function isskippable(str: string): boolean {
-    return str == " " || str == "\t" || str == "\n" || str == "\r";
+    return str == " " || str == "\t" || str == "\r";
 }
 
 function buildStringToken(src: string[], currcol: number): [string, number] {
     const tempcurrcol = currcol;
 
     const doubleQuote = src[0] == '"';
+    const backTick = src[0] == "`";
 
     src.shift(); // Skip the opening quote
     let str = "";
 
+    if (backTick) {
+        while (src.length > 0 && src[0] != (doubleQuote ? '"' : "'")) {
+            // if (src[0] == "\\" && src[1] == "n") {
+            //     str += "\n"
+            //     // Skip a couple times to skip the current char
+            //     src.shift(); src.shift();
+            // }
+            str += src.shift();
+            currcol += 1;
+        }
+    }
+
     while (src.length > 0 && src[0] != (doubleQuote ? '"' : "'")) {
+        // if (src[0] == "\\" && src[1] == "n") {
+        //     str += "\n"
+        //     // Skip a couple times to skip the current char
+        //     src.shift(); src.shift();
+        // }
         str += src.shift();
         currcol += 1;
     }

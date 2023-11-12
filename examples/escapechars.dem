@@ -1,0 +1,12 @@
+print("Before Newline\n");
+print("After  Newline");
+
+print("Tab\tTab");
+
+# print("Backspace\b");
+
+print("Carriage Return \r\n");
+
+print("Verticad\vTab");
+
+# print("Backslash: \\");

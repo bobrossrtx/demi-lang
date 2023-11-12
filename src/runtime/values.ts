@@ -86,7 +86,28 @@ export function MK_BOOL(value: boolean): RuntimeVal {
 }
 
 export function MK_STRING(value: string): RuntimeVal {
-    return { type: "string", value } as StringVal;
+    // Parse escape chars
+    // const value = value.split("");
+    let output = "";
+    if (value) {
+        for (let idx = 0; idx < value.length; idx++) {
+            const regex = /(\\)\w+/g;
+            if (regex.test(value[idx]+value[idx+1])) {
+                switch (value[idx+1]) {
+                    case 'n': output += '\n'; break;
+                    case 't': output += '\t'; break;
+                    case 'b': output += '\b'; break;
+                    case 'r': output += '\r'; break;
+                    case 'v': output += '\n\t'; break;
+                    default: output += value[idx+1]; break;
+                }
+                idx += 1;
+            } else output += value[idx]
+        }
+    }
+
+    // value.replace(/[\\].[n]/g, "\n")
+    return { type: "string", value: output } as StringVal;
 }
 
 export function MK_OBJECT(properties: Map<string, RuntimeVal>): RuntimeVal {

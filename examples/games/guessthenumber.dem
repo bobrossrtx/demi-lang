@@ -52,9 +52,9 @@ fn gameloop() {
         }
         tries = 5;
 
-        print("")
-        playAgainString = input("Would you like to play again? <Y/n>:");
-        print("");
+        playAgainString = input("\nWould you like to play again? <Y/n>:");
+
+        print("\n");
 
         if (playAgainString == "n") { playAgain = false; } 
         elif (playAgainString == "N") { playAgain = false; }
