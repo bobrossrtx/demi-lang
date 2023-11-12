@@ -1,0 +1,8 @@
+fn outer() {
+    let x = 0;
+    fn inner() {
+        let y = 0;
+    }
+    inner();
+}
+outer();

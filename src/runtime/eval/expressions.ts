@@ -1,7 +1,7 @@
 import { ArrayLiteral, AssignmentExpr, BinaryExpr, CallExpr, ComparisonExpr, Identifier, MemberExpr, ObjectLiteral, ReturnStatement } from "../../frontend/ast.ts";
 import { logger } from "../../helpers/helpers.ts";
 import { evaluate } from "../interpreter.ts";
-import { ArrayVal, FunctionVal, MK_BOOL, MK_NULL, NativeFnVal, NumberVal, ObjectVal, RuntimeVal } from "../values.ts";
+import { ArrayVal, BooleanVal, FunctionVal, MK_BOOL, MK_NULL, NativeFnVal, NumberVal, ObjectVal, RuntimeVal, StringVal } from "../values.ts";
 import { eval_return_statement } from "./statements.ts";
 import Environment from "../environment.ts";
 
@@ -46,6 +46,7 @@ export function eval_comparison_expr(expr: ComparisonExpr, env: Environment): Ru
     const lhs = evaluate(expr.left, env);
     const rhs = evaluate(expr.right, env);
 
+    // TODO: Finish off comparrison operators
     if (lhs.type == "number" && rhs.type == "number") {
         if (expr.operator == "==")
             return MK_BOOL((lhs as NumberVal).value == (rhs as NumberVal).value);
@@ -61,24 +62,24 @@ export function eval_comparison_expr(expr: ComparisonExpr, env: Environment): Ru
             return MK_BOOL((lhs as NumberVal).value <= (rhs as NumberVal).value);
     } else if (lhs.type == "string" && rhs.type == "string") {
         if (expr.operator == "==")
-            return MK_BOOL((lhs as NumberVal).value == (rhs as NumberVal).value);
+            return MK_BOOL((lhs as StringVal).value == (rhs as StringVal).value);
         else if (expr.operator == "!=")
-            return MK_BOOL((lhs as NumberVal).value != (rhs as NumberVal).value);
+            return MK_BOOL((lhs as StringVal).value != (rhs as StringVal).value);
     } else if (lhs.type == "boolean" && rhs.type == "boolean") {
         if (expr.operator == "==")
-            return MK_BOOL((lhs as NumberVal).value == (rhs as NumberVal).value);
+            return MK_BOOL((lhs as BooleanVal).value == (rhs as BooleanVal).value);
         else if (expr.operator == "!=")
-            return MK_BOOL((lhs as NumberVal).value != (rhs as NumberVal).value);
+            return MK_BOOL((lhs as BooleanVal).value != (rhs as BooleanVal).value);
     } else if (lhs.type == "boolean" && rhs.type == "number") {
         if (expr.operator == "==")
-            return MK_BOOL((lhs as NumberVal).value == (rhs as NumberVal).value);
+            return MK_BOOL(((lhs as BooleanVal).value ? 1 : 0) == (rhs as NumberVal).value);
         else if (expr.operator == "!=")
-            return MK_BOOL((lhs as NumberVal).value != (rhs as NumberVal).value);
+            return MK_BOOL(((lhs as BooleanVal).value ? 1 : 0) != (rhs as NumberVal).value);
     } else if (lhs.type == "number" && rhs.type == "boolean") {
         if (expr.operator == "==")
-            return MK_BOOL((lhs as NumberVal).value == (rhs as NumberVal).value);
+            return MK_BOOL((lhs as NumberVal).value == ((rhs as BooleanVal).value ? 1 : 0));
         else if (expr.operator == "!=")
-            return MK_BOOL((lhs as NumberVal).value != (rhs as NumberVal).value);
+            return MK_BOOL((lhs as NumberVal).value != ((rhs as BooleanVal).value ? 1 : 0));
     } else if (lhs.type == "null" && rhs.type == "null") {
         if (expr.operator == "==")
             return MK_BOOL((lhs as NumberVal).value == (rhs as NumberVal).value);
