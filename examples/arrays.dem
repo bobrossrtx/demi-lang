@@ -1,6 +1,5 @@
-let myarray = [1, 2, 3, 4];
-print("myarray    -> ", myarray);
-print("myarray[0] -> ", myarray[0]);
-print("myarray[1] -> ", myarray[1]);
-print("myarray[2] -> ", myarray[2]);
-print("myarray[3] -> ", myarray[3]);
+let myarray = [1, 2, 3, 4, 5];
+print("My Array: ", myarray);
+for (let i = 0; i < get_length(myarray); i = i + 1) {
+    print("myarray[", i ,"] -> ", myarray[i]);
+}

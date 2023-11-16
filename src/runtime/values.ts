@@ -51,7 +51,13 @@ export interface ObjectVal extends RuntimeVal {
     parentEnv?: Environment;
 }
 
-export type FunctionCall = (args: RuntimeVal[], env: Environment) => RuntimeVal;
+export type FunctionCall = (
+    args: RuntimeVal[],
+    env: Environment,
+    line: number,
+    column: number
+) => RuntimeVal;
+
 export interface NativeFnVal extends RuntimeVal {
     type: "native-fn";
     call: FunctionCall;

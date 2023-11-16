@@ -141,6 +141,14 @@ export function eval_member_expr(expr: MemberExpr, env: Environment): RuntimeVal
         // return (array.value[expr.property.]) as RuntimeVal;
         if (expr.property.kind == "NumericLiteral") {
             return (array.value[(expr.property as NumericLiteral).value]) as RuntimeVal;
+        } else if (expr.property.kind == "Identifier") {
+            const variable = env.lookupVar((expr.property as Identifier).symbol);
+            if (variable.type == "number")
+                return (array.value[(variable as NumberVal).value]) as RuntimeVal;
+            else {
+                logger.RuntimeError(`Array index should be of type number, found ${variable.type} | ${variable.line}:${variable.column}`);
+                Deno.exit(1);
+            }
         } else {
             Deno.exit(1);
         }
@@ -169,7 +177,7 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
     const fn = evaluate(expr.caller, env);
 
     if (fn.type == "native-fn") {
-        const result = (fn as NativeFnVal).call(args, env);
+        const result = (fn as NativeFnVal).call(args, env, expr.line, expr.column);
         return result;
     }
 

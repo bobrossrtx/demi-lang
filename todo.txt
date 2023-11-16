@@ -4,9 +4,6 @@
 
 - Add support for string interpolation.
 
-- Add array methods (Variables with type ArrayVal will have callable methods)
-    - EG: `let i = [1, 2]; i.push(3);`
-
 - Fix objects (Required)
 - Add support for classes (Requirments: objects)
 
@@ -21,7 +18,9 @@
 ----------------- WORKING ----------------
 
 - Array features eg:
-    - Selecting array elements
+    - Selecting array elements [/]
+    - Add array methods (Variables with type ArrayVal will have callable methods)
+        - EG: `let i = [1, 2]; i.push(3);`
 
 - Working on error handling and beautiful error messages
     (Always updating)

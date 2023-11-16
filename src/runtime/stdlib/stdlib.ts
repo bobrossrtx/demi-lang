@@ -1,6 +1,6 @@
 import { logger } from "../../helpers/helpers.ts";
 import Environment from "../environment.ts";
-import { MK_NATIVE_FN, MK_NULL, MK_OBJECT, NumberVal } from "../values.ts";
+import { ArrayVal, MK_NATIVE_FN, MK_NULL, MK_OBJECT, NumberVal, StringVal } from "../values.ts";
 import { SetupMathFunctions } from "./math.ts";
 import { SetupStdioFunctions } from "./stdio.ts";
 import { SetupTimeFunctions } from "./time.ts";
@@ -53,4 +53,20 @@ export function SetupStdlibFunctions(env: Environment) {
         const obj = MK_OBJECT(env.variables);
         return obj;
     }), true);
+
+    env.declareVar("get_length", MK_NATIVE_FN((args, _scope, line, col) => {
+        if (args.length < 1 || args.length > 1) {
+            logger.RuntimeError(`get_length() expects only 1 argument | ${line}:${col}`)
+            Deno.exit(1);
+        } else {
+            if (args[0].type == "string")
+                return { type: "number", value: (args[0] as StringVal).value.length } as NumberVal;
+            else if (args[0].type == "array")
+                return { type: "number", value: (args[0] as ArrayVal).value.length } as NumberVal;
+            else {
+                logger.RuntimeError(`get_length() expects an argument of types string|array | ${line}:${col}`);
+                Deno.exit(1);
+            }
+        }
+    }), true)
 }

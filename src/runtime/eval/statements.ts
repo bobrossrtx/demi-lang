@@ -101,7 +101,7 @@ export function eval_for_stmt(stmt: ForStatement, env: Environment): RuntimeVal 
     const condition = evaluate(stmt.condition, env); // Evaluates the condition
 
     if (condition.type != "boolean") {
-        logger.RuntimeError("For statement condition must be a boolean value.");
+        logger.RuntimeError("For loop condition must be a boolean value.");
         Deno.exit(1);
     }
 
