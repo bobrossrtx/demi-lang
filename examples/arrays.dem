@@ -1,2 +1,6 @@
 let myarray = [1, 2, 3, 4];
-print("My Array: ", myarray);
+print("myarray    -> ", myarray);
+print("myarray[0] -> ", myarray[0]);
+print("myarray[1] -> ", myarray[1]);
+print("myarray[2] -> ", myarray[2]);
+print("myarray[3] -> ", myarray[3]);
