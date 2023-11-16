@@ -125,7 +125,7 @@ export interface CallExpr extends Expr {
 export interface MemberExpr extends Expr {
     kind: "MemberExpr";
     object: Identifier;
-    property: Identifier;
+    property: Expr;
     computed: boolean;
 }
 

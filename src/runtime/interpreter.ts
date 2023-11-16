@@ -62,7 +62,7 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
         case "ArrayLiteral":
             return eval_array_expr(astNode as ArrayLiteral, env)
         case "MemberExpr": {
-            logger.Debug(String(env))
+            // logger.Debug(String(env))
             return eval_member_expr(astNode as MemberExpr, env);
         }
         case "CallExpr":

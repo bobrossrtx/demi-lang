@@ -1,4 +1,4 @@
-import { ArrayLiteral, AssignmentExpr, BinaryExpr, CallExpr, ComparisonExpr, Identifier, MemberExpr, ObjectLiteral, ReturnStatement } from "../../frontend/ast.ts";
+import { ArrayLiteral, AssignmentExpr, BinaryExpr, CallExpr, ComparisonExpr, Expr, Identifier, MemberExpr, NumericLiteral, ObjectLiteral, ReturnStatement } from "../../frontend/ast.ts";
 import { logger } from "../../helpers/helpers.ts";
 import { evaluate } from "../interpreter.ts";
 import { ArrayVal, BooleanVal, FunctionVal, MK_BOOL, MK_NULL, NativeFnVal, NumberVal, ObjectVal, RuntimeVal, StringVal } from "../values.ts";
@@ -128,8 +128,29 @@ export function eval_array_expr(array: ArrayLiteral, env: Environment): RuntimeV
 }
 
 export function eval_member_expr(expr: MemberExpr, env: Environment): RuntimeVal {
-    const obj = (env.lookupVar(expr.object.symbol)) as ObjectVal;
-    return (obj.properties.get(expr.property.symbol)) as RuntimeVal
+    // const obj = (env.lookupVar(expr.object.symbol)) as ObjectVal;
+    // return (obj.properties.get(expr.property.symbol)) as RuntimeVal
+
+    const obj = env.lookupVar(expr.object.symbol);
+    const array = {
+        type: "array",
+    } as ArrayVal;
+    if (obj.type == "array") {
+        array.value = (obj as ArrayVal).value;
+
+        // return (array.value[expr.property.]) as RuntimeVal;
+        if (expr.property.kind == "NumericLiteral") {
+            return (array.value[(expr.property as NumericLiteral).value]) as RuntimeVal;
+        } else {
+            Deno.exit(1);
+        }
+    } else if (obj.type == "object") {
+        logger.CustomError("Unimplemented Error", `Object member expressions have not yet been implemented | ${obj.line}:${obj.column}`);
+        Deno.exit(1);
+    } else {
+        logger.RuntimeError(`Unknown member expression | ${obj.line}:${obj.column}`)
+        Deno.exit(1);
+    }
 }
 
 export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {

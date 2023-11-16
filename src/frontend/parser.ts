@@ -706,6 +706,8 @@ export default class Parser {
         const column = this.at().column;
         let object = this.parse_primary_expr();
 
+        // console.log(object);
+
         while (this.at().type == TokenType.Dot || this.at().type == TokenType.OpenBracket) {
             const operator = this.eat();
             let property: Expr;
