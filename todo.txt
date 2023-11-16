@@ -1,25 +1,27 @@
 ------------------ TODO ------------------
 
 - Add support for boolean operators (ie &&, ||, !) (combines comparison statements)
-- Add support for escape characters in strings:
-    \n, \r\n, more
 
 - Add support for string interpolation.
 
 - Add array methods (Variables with type ArrayVal will have callable methods)
     - EG: `let i = [1, 2]; i.push(3);`
 
-- Add support for importing modules
-- Add support for importing files
-
 - Fix objects (Required)
 - Add support for classes (Requirments: objects)
+
+( I would like to do this after I fixed objects and added classes)
+- Add support for importing modules
+- Add support for importing files
 
 ------------------ TODO ------------------
 
 ##########################################
 
 ----------------- WORKING ----------------
+
+- Array features eg:
+    - Selecting array elements
 
 - Working on error handling and beautiful error messages
     (Always updating)
@@ -31,6 +33,9 @@
     - Software:
         - Inno:         https://jrsoftware.org/isinfo.php
         - Nullsoft:     https://en.wikipedia.org/wiki/Nullsoft_Scriptable_Install_System
+
+- Add support for escape characters in strings:
+    \n, \r\n, more
 
 ----------------- WORKING ----------------
 
