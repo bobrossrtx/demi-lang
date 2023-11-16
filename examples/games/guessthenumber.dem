@@ -1,6 +1,6 @@
 # Guess the number game example
 fn rand_range(x, y) {
-    return x + (y - x) * (get_time() * 9301 + 49297) % 233280 % max(x, y);
+    return x + (y - x) * (get_time() * 9301 + 49297) % 233280 % max(x, y+1);
 }
 
 # Temporary kinda working hotter_colder function

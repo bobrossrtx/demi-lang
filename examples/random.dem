@@ -3,7 +3,7 @@ fn random(seed) {
 }
 
 fn rand_range(x, y) {
-    return x + (y - x) * random(get_time()) % max(x, y);
+    return x + (y - x) * random(get_time()) % max(x, y+1);
 }
 
 print(rand_range(1, 10));
