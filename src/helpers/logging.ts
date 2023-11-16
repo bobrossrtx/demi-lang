@@ -65,5 +65,6 @@ export default class Logger {
             outString += args[i];
 
         console.log(`\x1B[1m\x1B[31mAssert Error: \x1B[0m`+outString);
+        Deno.exit(1);
     }
 }

@@ -17,14 +17,15 @@ export function SetupStdlibFunctions(env: Environment) {
 
     env.declareVar("assert", MK_NATIVE_FN((args, _scope) => {
         if (args.length < 1)
-            throw `assert() expects at least 1 argument, got ${args.length}.`;
+            logger.AssertionError(`assert() expects at least 1 argument, got ${args.length}`); // | ${args[0].line}:${args[0].column}`);
+        
         let customErrorMessage = false;
         if (args.length == 2) customErrorMessage = true;
 
-        if (args[0].type != "boolean")
-            throw `assert() expects argument 1 to be a boolean, got ${args[0].type}.`;
+        if (args[0]?.type != "boolean")
+            logger.AssertionError(`assert() expects argument 1 to be a boolean, got ${args[0]?.type} | ${args[0]?.line}:${args[0]?.column}`);
 
-        if (!args[0].value)
+        if (!args[0]?.value)
             if (customErrorMessage) logger.AssertionError(args[1].value);
             else logger.AssertionError(`Assertion failed.`);
 
