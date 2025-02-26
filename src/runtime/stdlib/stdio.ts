@@ -1,6 +1,6 @@
 import { logger, maths } from "../../helpers/helpers.ts";
 import Environment from "../environment.ts";
-import { ArrayVal, MK_NUMBER, MK_STRING, NumberVal, StringVal } from "../values.ts";
+import { ArrayVal, MK_NUMBER, MK_STRING, NumberVal, StringVal, FunctionVal } from "../values.ts";
 import { MK_NATIVE_FN, MK_NULL } from "../values.ts";
 
 export function SetupStdioFunctions(env: Environment) {
@@ -21,6 +21,10 @@ export function SetupStdioFunctions(env: Environment) {
                         arr.push((args[i] as ArrayVal).value[element].value)
                     }
                     outstring += `[ ${arr.join(", ")} ]`;
+                } else if (args[i].type == "function") {
+                    const funcValue= args[i] as FunctionVal;
+                    const params = funcValue && 'params' in funcValue ? funcValue.params : [];
+                    outstring += `<function ${funcValue.identifier || 'anonymous'}, params(${params.join(", ")})>`;
                 } else {
                     outstring += args[i].value;
                 }

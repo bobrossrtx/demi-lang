@@ -42,15 +42,7 @@
 
 ------------------ FIX -------------------
 
-- Printing functions doesn't show the AST of the function
-    - Update: Printing functions shouldn't show the AST, but a tree that describes the function
-    examples:
-        {
-            kind: "Function",
-            identifier: "Function Name",
-            params: ["params"],
-            return: "Return variable"
-        }
+
 
 ------------------ FIX -------------------
 
@@ -88,6 +80,16 @@
 - Create a logo for the language
 
 - Create a website for the language (Always updating (see todo on website github))
+
+- Printing functions doesn't show the AST of the function
+    - Update: Printing functions shouldn't show the AST, but a tree that describes the function
+    examples:
+        {
+            kind: "Function",
+            identifier: "Function Name",
+            params: ["params"],
+            return: "Return variable"
+        }
 
 ------------------ DONE ------------------
 
