@@ -1,7 +1,5 @@
 ------------------ TODO ------------------
 
-- Add support for boolean operators (ie &&, ||, !) (combines comparison statements)
-
 - Add support for string interpolation.
 
 - Fix objects (Required)
@@ -90,6 +88,9 @@
             params: ["params"],
             return: "Return variable"
         }
+
+- Add support for boolean operators (ie &&, ||, !) (combines comparison statements)
+    Support for (&& + || + !) seems to be working.
 
 ------------------ DONE ------------------
 

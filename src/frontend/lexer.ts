@@ -23,6 +23,8 @@ export enum TokenType {
     // Grouping * Operators
     BinaryOperator, // + - * / %
     Equals,         // =
+    And,            // &&
+    Or,             // ||
     Not,            // !
     Less,           // <
     Greater,        // >
@@ -119,97 +121,96 @@ export function tokenize(sourceCode: string): Token[] {
 
     // Build each token until EOF
     while (src.length > 0) {
-        if (src[0] == "\n") {
-            currline += 1;
-            currcol = 1;
-            src.shift();
-        }
-        else if (src[0] == " ") {
-            currcol += 1;
-            src.shift();
-        }
-        else if (src[0] == '(') { tokens.push(token(src.shift(), TokenType.OpenParen, currline, currcol)); currcol += 1; }
-        else if (src[0] == ')') { tokens.push(token(src.shift(), TokenType.CloseParen, currline, currcol)); currcol += 1; }
-        else if (src[0] == '{') { tokens.push(token(src.shift(), TokenType.OpenBrace, currline, currcol)); currcol += 1; }
-        else if (src[0] == '}') { tokens.push(token(src.shift(), TokenType.CloseBrace, currline, currcol)); currcol += 1; }
-        else if (src[0] == '[') { tokens.push(token(src.shift(), TokenType.OpenBracket, currline, currcol)); currcol += 1;}
-        else if (src[0] == ']') { tokens.push(token(src.shift(), TokenType.CloseBracket, currline, currcol)); currcol += 1; }
-        else if (src[0] == '+' || src[0] == '-' || src[0] == '*' || src[0] == '/' || src[0] == '%') { tokens.push(token(src.shift(), TokenType.BinaryOperator, currline, currcol)); currcol += 1; }
-        else if (src[0] == '=') { tokens.push(token(src.shift(), TokenType.Equals, currline, currcol)); currcol += 1; }
-        else if (src[0] == '<') { tokens.push(token(src.shift(), TokenType.Less, currline, currcol)); currcol += 1; }
-        else if (src[0] == '>') { tokens.push(token(src.shift(), TokenType.Greater, currline, currcol)); currcol += 1; }
-        else if (src[0] == '!') { tokens.push(token(src.shift(), TokenType.Not, currline, currcol)); currcol += 1; }
-        else if (src[0] == ';') { tokens.push(token(src.shift(), TokenType.Semicolon, currline, currcol)); currcol += 1; }
-        else if (src[0] == ',') { tokens.push(token(src.shift(), TokenType.Comma, currline, currcol)); currcol += 1; }
-        else if (src[0] == '.') { tokens.push(token(src.shift(), TokenType.Dot, currline, currcol)); currcol += 1; }
-        else if (src[0] == ':') { tokens.push(token(src.shift(), TokenType.Colon, currline, currcol)); currcol += 1; }
-        else if (src[0] == '"' || src[0] == "'") {
-            // Build string token
-            const [str, tempcurrcol] = buildStringToken(src, currcol);
-            tokens.push(token(str, TokenType.String, currline, tempcurrcol));
-        }
-        else if (src[0] == '#') {
-            // Skip comment
-            // @ts-ignore - Hides the stupid error about src[0] not possibly being '\n'
-            while (src.length > 0 && src[0] != '\n')
-                src.shift()
-        }
-        else {
-            // Handle multi-character tokens
-
-            // Build number token
-            if (isint(src[0])) {
-                const tempcurrcol = currcol;
-                let num = "";
-
-                while (src.length > 0 && isint(src[0])) {
-                    num += src.shift();
-                    currcol += 1;
+        const char = src[0];
+        switch (char) {
+            case '\n':
+                currline += 1;
+                currcol = 1;
+                src.shift();
+                break;
+            case ' ':
+                currcol += 1;
+                src.shift();
+                break;
+            case '(': tokens.push(token(src.shift(), TokenType.OpenParen, currline, currcol++)); break;
+            case ')': tokens.push(token(src.shift(), TokenType.CloseParen, currline, currcol++)); break;
+            case '{': tokens.push(token(src.shift(), TokenType.OpenBrace, currline, currcol++)); break;
+            case '}': tokens.push(token(src.shift(), TokenType.CloseBrace, currline, currcol++)); break;
+            case '[': tokens.push(token(src.shift(), TokenType.OpenBracket, currline, currcol++)); break;
+            case ']': tokens.push(token(src.shift(), TokenType.CloseBracket, currline, currcol++)); break;
+            case '+':
+            case '-':
+            case '*':
+            case '/':
+            case '%': tokens.push(token(src.shift(), TokenType.BinaryOperator, currline, currcol++)); break;
+            case '=': tokens.push(token(src.shift(), TokenType.Equals, currline, currcol++)); break;
+            case '<': tokens.push(token(src.shift(), TokenType.Less, currline, currcol++)); break;
+            case '>': tokens.push(token(src.shift(), TokenType.Greater, currline, currcol++)); break;
+            case '&':
+                if (src[1] === '&') {
+                    src.shift(); src.shift();
+                    tokens.push(token("&&", TokenType.And, currline, currcol));
+                    currcol += 2;
                 }
-
-                tokens.push(token(num, TokenType.Number, currline, tempcurrcol));
-            }
-            else if (src[0] == "-" && isint(src[1])) {
-                const tempcurrcol = currcol;
-                let num = "-";
-                while(num.charAt(0) === '-') {
-                    num = num.substring(1);
-                    currcol += 1;
+                break;
+            case '|':
+                if (src[1] === '|') {
+                    src.shift(); src.shift();
+                    tokens.push(token("||", TokenType.Or, currline, currcol));
+                    currcol += 2;
                 }
-
-                while (src.length > 0 && isint(src[1])) {
-                    num += src.shift();
-                    currcol += 1;
+                break;
+            case '!': tokens.push(token(src.shift(), TokenType.Not, currline, currcol++)); break;
+            case ';': tokens.push(token(src.shift(), TokenType.Semicolon, currline, currcol++)); break;
+            case ',': tokens.push(token(src.shift(), TokenType.Comma, currline, currcol++)); break;
+            case '.': tokens.push(token(src.shift(), TokenType.Dot, currline, currcol++)); break;
+            case ':': tokens.push(token(src.shift(), TokenType.Colon, currline, currcol++)); break;
+            case '"':
+            case "'":
+                const [str, tempcurrcol] = buildStringToken(src, currcol);
+                tokens.push(token(str, TokenType.String, currline, tempcurrcol));
+                break;
+            case '#':
+                while (src.length > 0 && src[0] !== '\n') src.shift();
+                break;
+            default:
+                if (isint(char)) {
+                    const tempcurrcol = currcol;
+                    let num = "";
+                    while (src.length > 0 && isint(src[0])) {
+                        num += src.shift();
+                        currcol++;
+                    }
+                    tokens.push(token(num, TokenType.Number, currline, tempcurrcol));
                 }
-
-                tokens.push(token(num, TokenType.Number, currline, tempcurrcol));
-            }
-            // } else if (isalpha(src[0])) { // Build identifier token
-            // Build identifier token with isalpha() and underscores allowed
-            else if (isalpha(src[0])) {
-                const tempcurrcol = currcol;
-                let ident = "";
-                while (src.length > 0 && isalpha(src[0])) {
-                    ident += src.shift();
-                    currcol += 1;
+                else if (char === "-" && isint(src[1])) {
+                    const tempcurrcol = currcol;
+                    src.shift();
+                    currcol++;
+                    let num = "-";
+                    while (src.length > 0 && isint(src[0])) {
+                        num += src.shift();
+                        currcol++;
+                    }
+                    tokens.push(token(num, TokenType.Number, currline, tempcurrcol));
                 }
-
-                // Check if identifier is a keyword
-                const reserved = KEYWORDS[ident];
-                if (typeof reserved == "number") {
-                    tokens.push(token(ident, reserved, currline, tempcurrcol));
-                } else {
-                    tokens.push(token(ident, TokenType.Identifier, currline, tempcurrcol));
+                else if (isalpha(char)) {
+                    const tempcurrcol = currcol;
+                    let ident = "";
+                    while (src.length > 0 && isalpha(src[0])) {
+                        ident += src.shift();
+                        currcol++;
+                    }
+                    const reserved = KEYWORDS[ident];
+                    tokens.push(token(ident, reserved ?? TokenType.Identifier, currline, tempcurrcol));
                 }
-            } else if (isskippable(src[0])) { // Skip whitespace
-                src.shift(); // SKIP THE CURRENT CHARACTER
-            } else {
-                // Print error + (character and character code)
-                const charcode = src[0].charCodeAt(0);
-
-                logger.CustomError("Unexpected Character", `[${charcode}] "${src[0]}" | ${currline}:${currcol}`);
-                Deno.exit(1);
-            }
+                else if (isskippable(char)) {
+                    src.shift();
+                }
+                else {
+                    logger.CustomError("Unexpected Character", `[${char.charCodeAt(0)}] "${char}" | ${currline}:${currcol}`);
+                    Deno.exit(1);
+                }
         }
     }
 

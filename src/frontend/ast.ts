@@ -17,6 +17,8 @@ export type NodeType =
     | "ComparisonExpr"
     | "MemberExpr"
     | "CallExpr"
+    | "LogicalExpr"
+    | "UnaryExpr"
     // | "PassExpr"
 
     // LITERALS
@@ -127,6 +129,19 @@ export interface MemberExpr extends Expr {
     object: Identifier;
     property: Expr;
     computed: boolean;
+}
+
+export interface LogicalExpr extends Expr {
+    kind: "LogicalExpr";
+    left: Expr;
+    right: Expr;
+    operator: string;
+}
+
+export interface UnaryExpr extends Expr {
+    kind: "UnaryExpr";
+    operator: string;
+    operand: Expr;
 }
 
 // export interface PassExpr extends Expr {

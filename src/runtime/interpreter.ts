@@ -4,6 +4,7 @@ import {
 ArrayLiteral,
     AssignmentExpr,
     BinaryExpr,
+    UnaryExpr,
     CallExpr,
     ClassDeclaration,
     ComparisonExpr,
@@ -19,7 +20,8 @@ ArrayLiteral,
     Stmt,
     StringLiteral,
     VarDeclaration,
-    WhileStatement
+    WhileStatement,
+    LogicalExpr
     } from '../frontend/ast.ts';
 import {
 eval_array_expr,
@@ -40,8 +42,25 @@ eval_class_decl,
     eval_var_decl,
     eval_while_stmt
     } from './eval/statements.ts';
-import { MK_NUMBER, MK_STRING, RuntimeVal } from './values.ts';
+import { MK_NUMBER, MK_STRING, RuntimeVal, BooleanVal } from './values.ts';
 import { logger } from '../helpers/helpers.ts';
+
+function toBooleanValue(value: RuntimeVal) {
+    switch (value.type) {
+        case "null":
+            return false;
+        case "number":
+            return value.value !== 0;
+        case "boolean": 
+            return value.value;
+        case "string":{
+            let str = value.value as string;
+            return str.length > 0;
+        }
+        default:
+            return true;
+    }
+}
 
 export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
     switch (astNode.kind) {
@@ -55,6 +74,33 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_assignment_expr(astNode as AssignmentExpr, env);
         case "BinaryExpr":
             return eval_binary_expr(astNode as BinaryExpr, env);
+        case "LogicalExpr": {
+            const expr = astNode as LogicalExpr;
+            const left = evaluate(expr.left, env);
+
+            // Short circuit if left is false
+            if (expr.operator == "&&") {
+                if (toBooleanValue(left) == false) return left;
+                return evaluate(expr.right, env);
+            } else if (expr.operator == "||") {
+                if (toBooleanValue(left) == true) return left;
+                return evaluate(expr.right, env);
+            }
+            
+            return left;
+        }
+        case "UnaryExpr": {
+            const expr = astNode as UnaryExpr;
+            const operand = evaluate(expr.operand, env);
+
+            if (expr.operator === "!")
+                return {
+                    type: "boolean",
+                    value: !toBooleanValue(operand)
+                } as BooleanVal;
+
+            return operand;
+        }
         case "Program":
             return eval_program(astNode as Program, env);
         case "ObjectLiteral":
