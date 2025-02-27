@@ -21,7 +21,8 @@ ArrayLiteral,
     StringLiteral,
     VarDeclaration,
     WhileStatement,
-    LogicalExpr
+    LogicalExpr,
+    TemplateString
     } from '../frontend/ast.ts';
 import {
 eval_array_expr,
@@ -63,11 +64,41 @@ function toBooleanValue(value: RuntimeVal) {
 }
 
 export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
+    logger.AST(astNode, "Evaluating");  // Add this line to log every node being evaluated
+
     switch (astNode.kind) {
         case "NumericLiteral":
             return MK_NUMBER((astNode as NumericLiteral).value);
         case "StringLiteral":
             return MK_STRING((astNode as StringLiteral).value);
+        case "TemplateString": {
+            const template = astNode as TemplateString;
+            let output = "";
+
+            logger.Debug("=== Template String Evaluation ===");
+            logger.Debug(`Number of parts: ${template.parts.length}`);
+            logger.Debug(`Parts:`, JSON.stringify(template, null, 2));
+            
+            for (const part of template.parts) {
+                if (part.kind === "StringLiteral") {
+                    logger.Debug(`Processing string literal: "${(part as StringLiteral).value}"`);
+                    output += (part as StringLiteral).value;
+                } else {
+                    logger.Debug(`Processing expression: ${JSON.stringify(part)}`);
+                    const value = evaluate(part, env);
+                    logger.Debug(`Expression evaluated to: ${JSON.stringify(value)}`);
+                    output += value.value?.toString() ?? "";
+                }
+                logger.Debug(`Current output: "${output}"`);
+            }
+
+            logger.Debug("Output:", output);
+            const result = MK_STRING(output);
+            logger.Debug(`Returning RuntimeVal: ${JSON.stringify(result)}`);
+            logger.Debug(`Returning to caller: ${new Error().stack?.split('\n')[2]}`);
+            logger.Debug("=== Template String Evaluation End ===");
+            return result;
+        }
         case "Identifier":
             return eval_identifier(astNode as Identifier, env);
         case "AssignmentExpr":
@@ -117,8 +148,9 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_comparison_expr(astNode as ComparisonExpr, env);
 
         // Handle statements
-        case "VarDeclaration":
+        case "VarDeclaration": {
             return eval_var_decl(astNode as VarDeclaration, env);
+        }
         case "FunctionDeclaration":
             return eval_function_decl(astNode as FunctionDeclaration, env);
         case "ClassDeclaration":

@@ -25,11 +25,13 @@ import {
     WhileStatement,
     ForStatement,
     ClassDeclaration,
-    ArrayLiteral
+    ArrayLiteral,
+    TemplateString
 } from './ast.ts';
 
 export default class Parser {
     private tokens: Token[] = [];
+    private previousToken: Token | null = null;
 
     private not_eof(): boolean {
         return this.at().type != TokenType.EOF;
@@ -39,8 +41,13 @@ export default class Parser {
         return this.tokens[0] as Token;
     }
 
+    private previous() {
+        return this.previousToken as Token;
+    }
+
     private eat() {
         const prev = this.tokens.shift() as Token;
+        this.previousToken = prev;
         return prev;
     }
 
@@ -214,37 +221,73 @@ export default class Parser {
 
 
     // ( CONST | LET ) IDENTIFIER ( EQUALS EXPR )? SEMICOLON
+    // private parse_var_decl(): Stmt {
+    //     const line = this.at().line;
+    //     const column = this.at().column;
+
+    //     const isConstant = this.eat().type == TokenType.Const;
+
+    //     const identifier = this.expect(
+    //         TokenType.Identifier,
+    //         "Expected identifier name following let/const keywords."
+    //     ).value;
+
+    //     if (this.at().type == TokenType.Semicolon) {
+    //         this.eat(); // expect semicolon
+    //         if (isConstant) {
+    //             logger.SyntaxError("Expected expression after constant declaration.");
+    //             Deno.exit(1);
+    //         }
+    //         return { kind: "VarDeclaration", identifier, constant: false, line, column } as VarDeclaration;
+    //     }
+
+    //     this.expect(TokenType.Equals, "Expected equals sign after variable declaration.");
+
+    //     logger.Debug("Parsing expression after variable declaration.");
+    //     logger.Debug("Current token:", this.at());
+
+    //     const declaration = { 
+    //         kind: "VarDeclaration",
+    //         identifier,
+    //         value: this.parse_expr(),
+    //         constant: isConstant,
+    //         line,
+    //         column
+    //     } as VarDeclaration;
+
+    //     logger.Debug("Created Declaration:", JSON.stringify(declaration, null, 2));
+
+    //     return declaration;
+    // }
     private parse_var_decl(): Stmt {
         const line = this.at().line;
         const column = this.at().column;
-
+        
         const isConstant = this.eat().type == TokenType.Const;
-
         const identifier = this.expect(
             TokenType.Identifier,
-            "Expected identifier after variable declaration."
+            "Expected identifier name following let/const keywords."
         ).value;
-
-        if (this.at().type == TokenType.Semicolon) {
-            this.eat(); // expect semicolon
-            if (isConstant) {
-                logger.SyntaxError("Expected expression after constant declaration.");
-                Deno.exit(1);
-            }
-            return { kind: "VarDeclaration", identifier, constant: false, line, column } as VarDeclaration;
-        }
-
+    
         this.expect(TokenType.Equals, "Expected equals sign after variable declaration.");
-
-        const declaration = { 
+    
+        logger.Debug("Parsing variable declaration value");
+        logger.Debug("Current token:", JSON.stringify(this.at(), null, 2));
+    
+        // Parse the value - let parse_expr handle template strings
+        const value = this.parse_expr();
+        logger.Debug("Parsed value:", JSON.stringify(value, null, 2));
+    
+        const declaration = {
             kind: "VarDeclaration",
             identifier,
-            value: this.parse_expr(),
+            value,  // This will be the complete template string node
             constant: isConstant,
             line,
             column
         } as VarDeclaration;
-
+        
+        logger.Debug("Created Declaration:", JSON.stringify(declaration, null, 2));
         return declaration;
     }
 
@@ -563,6 +606,84 @@ export default class Parser {
     // }
 
     private parse_expr(): Expr {
+        logger.Debug("=== Expression Parsing Start ===");
+        logger.Debug("Current token:", JSON.stringify(this.at(), null, 2));
+        logger.Debug("Next token:", JSON.stringify(this.peek(), null, 2));
+
+        if (this.at().type == TokenType.String && this.at().value === "") {
+            return {
+                kind: "StringLiteral",
+                value: "",
+                line: this.at().line,
+                column: this.at().column
+            } as StringLiteral;
+        }
+
+        // Check for template string pattern
+        if (this.at().type === TokenType.String && 
+        this.peek()?.type === TokenType.StringInterpolStart) {
+        
+            logger.Debug("Found template string pattern");
+            let parts: (StringLiteral | Expr)[] = [];
+            
+            // Add initial string part
+            parts.push({
+                kind: "StringLiteral",
+                value: this.eat().value,
+                line: this.at().line,
+                column: this.at().column
+            } as StringLiteral);
+            
+            // // Process interpolation
+            // while (this.at().type === TokenType.StringInterpolStart) {
+            //     this.eat(); // eat ${
+            //     parts.push(this.parse_expr());
+            //     this.expect(TokenType.StringInterpolEnd, "Expected } in template string");
+                
+            //     // Add any string content after }
+            //     if (this.at().type === TokenType.String) {
+            //         parts.push({
+            //             kind: "StringLiteral",
+            //             value: this.eat().value,
+            //             line: this.at().line,
+            //             column: this.at().column
+            //         } as StringLiteral);
+            //     }
+            // }
+
+             // Keep parsing until we reach the end of the template string
+            while (this.not_eof()) {
+                // Add string part if present
+                if (this.at().type === TokenType.String) {
+                    logger.Debug(`Adding string part: ${this.at().value}`);
+                    parts.push({
+                        kind: "StringLiteral",
+                        value: this.eat().value,
+                        line: this.at().line,
+                        column: this.at().column
+                    } as StringLiteral);
+                }
+                
+                // Break if we're not at an interpolation
+                if (this.at().type !== TokenType.StringInterpolStart) break;
+                
+                // Handle interpolation
+                this.eat(); // eat ${
+                logger.Debug("Processing interpolation");
+                const expr = this.parse_expr();
+                parts.push(expr);
+                this.expect(TokenType.StringInterpolEnd, "Expected } in template string");
+            }
+            
+            logger.Debug("Created template string parts:", JSON.stringify(parts, null, 2));
+            return {
+                kind: "TemplateString",
+                parts,
+                line: this.at().line,
+                column: this.at().column
+            } as TemplateString;
+        }
+
         return this.parse_logical_expr();
     }
 
@@ -803,13 +924,27 @@ export default class Parser {
 
         // Handle all logical expressions within the arguments:;
         while (this.not_eof() && this.at().type !== TokenType.CloseParen) {
+            logger.Debug("=== Parsing Function Argument ===");
+            logger.Debug("Current token:", JSON.stringify(this.at(), null, 2));
+            logger.Debug("Next token:", JSON.stringify(this.peek(), null, 2));
 
-            if (this.at().type === TokenType.Not) {
-                args.push(this.parse_logical_expr());
-            } else {
-                const expr = this.parse_logical_expr();
-                args.push(expr);
+            // Start of a template string
+            if (this.at().type === TokenType.String && this.peek()?.type === TokenType.StringInterpolStart) {
+                logger.Debug("Found template string pattern");
+                const template = this.parse_template_string();
+                args.push(template);
+
+                // Check for a comma or closing parenthesis
+                if (this.at().type !== TokenType.CloseParen && this.at().type !== TokenType.Comma) {
+                    logger.SyntaxError("Unexpected token found inside function call. Expected comma or closing parenthesis.");
+                    logger.Debug("Current token:", JSON.stringify(this.at(), null, 2));
+                    this.expect(TokenType.Comma, "Expected comma between function arguments");
+                }
+                continue;
             }
+
+            const arg = this.parse_expr();
+            args.push(arg);
 
             if (this.at().type !== TokenType.CloseParen) {
                 this.expect(TokenType.Comma, "Expected comma between function arguments");
@@ -819,6 +954,80 @@ export default class Parser {
         this.expect(TokenType.CloseParen, "Unexpected token found inside function call. Expected closing parenthesis.");
 
         return args;
+    }
+
+    private parse_template_string(): Expr {
+        logger.Debug("=== Starting template string parsing ===");
+        const parts: (StringLiteral | Expr)[] = [];
+    
+        // Add initial string part if present
+        if (this.at().type === TokenType.String) {
+            logger.Debug(`Adding initial string part: "${this.at().value}"`);
+            parts.push({
+                kind: "StringLiteral",
+                value: this.eat().value,
+                line: this.at().line,
+                column: this.at().column
+            } as StringLiteral);
+        }
+    
+        while (this.not_eof()) {
+            logger.Debug(`Processing token: ${TokenType[this.at().type]} (${this.at().value})`);
+    
+            // Handle interpolation
+            if (this.at().type === TokenType.StringInterpolStart) {
+                this.eat(); // eat ${
+                
+                // Handle empty interpolation cases
+                if (this.at().type === TokenType.StringInterpolEnd || 
+                    (this.at().type === TokenType.String && this.at().value === "")) {
+                    
+                    logger.Debug("Found empty interpolation");
+                    if (this.at().type === TokenType.String) {
+                        this.eat(); // consume empty string
+                    }
+                    
+                    this.expect(TokenType.StringInterpolEnd, "Expected } after empty interpolation");
+                    
+                    // Add empty string part
+                    parts.push({
+                        kind: "StringLiteral",
+                        value: "",
+                        line: this.at().line,
+                        column: this.at().column
+                    } as StringLiteral);
+                } else {
+                    // Parse non-empty interpolation
+                    const expr = this.parse_expr();
+                    parts.push(expr);
+                    this.expect(TokenType.StringInterpolEnd, "Expected } in template string");
+                }
+            }
+    
+            // Handle string content after interpolation
+            if (this.at().type === TokenType.String) {
+                logger.Debug(`Found string content: "${this.at().value}"`);
+                parts.push({
+                    kind: "StringLiteral",
+                    value: this.eat().value,
+                    line: this.at().line,
+                    column: this.at().column
+                } as StringLiteral);
+            }
+    
+            // Break if we're done
+            if (this.at().type !== TokenType.StringInterpolStart) {
+                break;
+            }
+        }
+    
+        logger.Debug(`Final parts array (${parts.length}):`, JSON.stringify(parts, null, 2));
+        return {
+            kind: "TemplateString",
+            parts,
+            line: this.at().line,
+            column: this.at().column
+        } as TemplateString;
     }
 
     private parse_arguments_list(): Expr[] {
@@ -935,8 +1144,95 @@ export default class Parser {
                 if (negative) value = -Math.abs(value);
                 return { kind: "NumericLiteral", value, line, column} as NumericLiteral;
             }
-            case TokenType.String:
-                return { kind: "StringLiteral", value: this.eat().value , line, column} as StringLiteral;
+            case TokenType.String: {
+                // Add special handling for empty strings
+                if (this.at().value === "") {
+                    const emptyStr = {
+                        kind: "StringLiteral",
+                        value: this.eat().value,
+                        line: this.at().line,
+                        column: this.at().column
+                    } as StringLiteral;
+    
+                    // Check if we're in a template string context
+                    if (this.at().type === TokenType.StringInterpolEnd) {
+                        return emptyStr;
+                    }
+                }
+                return { 
+                    kind: "StringLiteral", 
+                    value: this.eat().value,
+                    line: this.at().line,
+                    column: this.at().column
+                } as StringLiteral;
+            }
+            case TokenType.StringInterpolStart: {
+                logger.Debug("=== Starting Template String Parsing ===");
+                const parts: (StringLiteral | Expr)[] = [];
+            
+                // Add initial string part if exists
+                if (this.previous().type === TokenType.String) {
+                    logger.Debug(`Adding initial string part: "${this.previous().value}"`);
+                    parts.push({
+                        kind: "StringLiteral",
+                        value: this.previous().value,
+                        line,
+                        column
+                    } as StringLiteral);
+                }
+            
+                while (this.not_eof()) {
+                    this.eat(); // eat ${
+                    logger.Debug("Processing interpolation content");
+                    logger.Debug("Current token:", JSON.stringify(this.at(), null, 2));
+            
+                    // Check for empty interpolation ${} or ${""}
+                    if (this.at().type === TokenType.StringInterpolEnd || 
+                        (this.at().type === TokenType.String && this.at().value === "")) {
+                        
+                        logger.Debug("Found empty interpolation");
+                        if (this.at().type === TokenType.String) {
+                            this.eat(); // eat empty string if present
+                        }
+                        
+                        this.expect(TokenType.StringInterpolEnd, "Expected } after empty interpolation");
+                        
+                        // Add empty string to parts
+                        parts.push({
+                            kind: "StringLiteral",
+                            value: "",
+                            line: this.at().line,
+                            column: this.at().column
+                        } as StringLiteral);
+                        
+                        continue;
+                    }
+            
+                    // Handle non-empty interpolations
+                    const expr = this.parse_expr();
+                    parts.push(expr);
+                    this.expect(TokenType.StringInterpolEnd, "Expected } in template string");
+            
+                    // Handle any following string content
+                    if (this.at().type === TokenType.String) {
+                        parts.push({
+                            kind: "StringLiteral",
+                            value: this.eat().value,
+                            line: this.at().line,
+                            column: this.at().column
+                        } as StringLiteral);
+                    }
+            
+                    if (this.at().type !== TokenType.StringInterpolStart) break;
+                }
+            
+                return {
+                    kind: "TemplateString",
+                    parts,
+                    line,
+                    column
+                } as TemplateString;
+            }
             case TokenType.Semicolon:
                 this.eat(); // eat the semicolon
                 return { kind: "NullLiteral", line, column} as NullLiteral;
@@ -967,7 +1263,7 @@ export default class Parser {
             }
             
             default:
-                logger.ParserError(`Unexpected token found during parsing! { value: "${this.at().value}", type: ${this.at().type} }`);
+                logger.ParserError(`Unexpected token found during parsing! { value: "${this.at().value}", type: ${this.at().type} } Lines: (${this.at().line}:${this.at().column})`);
                 Deno.exit(1);
         }
     }

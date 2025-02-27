@@ -26,6 +26,7 @@ export type NodeType =
     | "ObjectLiteral"
     | "NumericLiteral"
     | "StringLiteral"
+    | "TemplateString"
     | "ArrayLiteral"
     | "Identifier"
     | "NullLiteral";
@@ -162,6 +163,11 @@ export interface NumericLiteral extends Expr {
 export interface StringLiteral extends Expr {
     kind: "StringLiteral";
     value: string;
+}
+
+export interface TemplateString extends Expr {
+    kind: "TemplateString";
+    parts: (StringLiteral | Expr)[];
 }
 
 export interface Property extends Expr {

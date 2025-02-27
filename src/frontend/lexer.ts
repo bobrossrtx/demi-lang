@@ -5,6 +5,12 @@ export enum TokenType {
     Number,
     Identifier,
     String,
+
+    // String interpolation
+    BackTick,               // `
+    StringInterpolStart,    // ${
+    StringInterpolEnd,      // }
+
     // ClassObject,
 
     // Keyword
@@ -78,39 +84,78 @@ function isskippable(str: string): boolean {
     return str == " " || str == "\t" || str == "\r";
 }
 
-function buildStringToken(src: string[], currcol: number): [string, number] {
-    const tempcurrcol = currcol;
 
-    const doubleQuote = src[0] == '"';
-    const backTick = src[0] == "`";
+function buildStringTokens(src: string[], currcol: number, currline: number, tokens: Token[]): [string, number] {
+    const tempcurrcol = currcol;
+    const stringType = src[0];
+    const isTemplate = stringType === '`';
 
     src.shift(); // Skip the opening quote
     let str = "";
+    let startCol = currcol;
 
-    if (backTick) {
-        while (src.length > 0 && src[0] != (doubleQuote ? '"' : "'")) {
-            // if (src[0] == "\\" && src[1] == "n") {
-            //     str += "\n"
-            //     // Skip a couple times to skip the current char
-            //     src.shift(); src.shift();
-            // }
-            str += src.shift();
-            currcol += 1;
+    while (src.length > 0 && src[0] !== stringType) {
+        logger.Debug(`Current char: ${src[0]}`);
+
+        // Handle template string interpolation
+        if (isTemplate && src[0] === '$' && src[1] === '{') {
+            // Push accumulated string if exists
+            if (str.length > 0) {
+                logger.Debug(`Pushing string part: "${str}"`);
+                tokens.push(token(str, TokenType.String, currline, startCol)); // Template parts
+                str = "";
+            }
+
+            src.shift(); src.shift(); // Skip ${
+            logger.Debug("Adding interpolation start token");
+            tokens.push(token("${", TokenType.StringInterpolStart, currline, currcol));
+            currcol += 2;
+
+            let braceCount = 1;
+            let expr = "";
+
+            while (src.length > 0 && braceCount > 0) {
+                const currentChar = src[0];
+                logger.Debug(`Expression char: ${currentChar}, Brace count: ${braceCount}`);
+                
+                if ((currentChar as string) === '{') {
+                    braceCount++;
+                } else if ((currentChar as string) === '}') {
+                    braceCount--;
+                }
+                
+                if (braceCount > 0) {
+                    expr += currentChar;
+                    logger.Debug(`Added to expression: ${expr}`);
+                }
+                src.shift();
+                currcol++;
+            }
+
+            if (expr.length > 0) {
+                logger.Debug(`Processing expression: ${expr}`);
+                const interpolatedTokens = tokenize(expr);
+                tokens.push(...interpolatedTokens.slice(0, -1)); // Skip EOF token
+            }
+
+            tokens.push(token("}", TokenType.StringInterpolEnd, currline, currcol));
+            startCol = currcol;
+            continue;
         }
+
+        str += src.shift();
+        currcol++;
     }
 
-    while (src.length > 0 && src[0] != (doubleQuote ? '"' : "'")) {
-        // if (src[0] == "\\" && src[1] == "n") {
-        //     str += "\n"
-        //     // Skip a couple times to skip the current char
-        //     src.shift(); src.shift();
-        // }
-        str += src.shift();
-        currcol += 1;
-    }
-    
     src.shift(); // Skip the closing quote
-    return [str, tempcurrcol]
+
+    // Push any remaining string content
+    if (str.length > 0) {
+        logger.Debug(`Pushing final string part: "${str}"`);
+        tokens.push(token(str, TokenType.String, currline, startCol));
+    }
+
+    return ["", currcol];
 }
 
 export function tokenize(sourceCode: string): Token[] {
@@ -165,11 +210,21 @@ export function tokenize(sourceCode: string): Token[] {
             case ',': tokens.push(token(src.shift(), TokenType.Comma, currline, currcol++)); break;
             case '.': tokens.push(token(src.shift(), TokenType.Dot, currline, currcol++)); break;
             case ':': tokens.push(token(src.shift(), TokenType.Colon, currline, currcol++)); break;
+            // case '"':
+            // case "'":
+            //     const [str, tempcurrcol] = buildRegularString(src, currcol, currline);
+            //     tokens.push(token(str, TokenType.String, currline, tempcurrcol));
+            //     break;
+            // case '`':
+            //     const [_, templateCol] = buildTemplateString(src, currcol, currline, tokens);
+            //     break;
             case '"':
             case "'":
-                const [str, tempcurrcol] = buildStringToken(src, currcol);
-                tokens.push(token(str, TokenType.String, currline, tempcurrcol));
+            case '`': {
+                const [_, newCol] = buildStringTokens(src, currcol, currline, tokens);
+                currcol = newCol;
                 break;
+            }
             case '#':
                 while (src.length > 0 && src[0] !== '\n') src.shift();
                 break;
