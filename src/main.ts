@@ -41,7 +41,7 @@ const parameters: Record<string, Parameter> = {
 }
 
 // deno-lint-ignore prefer-const
-let globalSettings: Record<string, boolean|string> = {
+export const globalSettings: Record<string, boolean|string> = {
     help: false,
     debug: false,
     speed: false,

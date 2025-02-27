@@ -1,6 +1,5 @@
 {
     "deno.enable": true,
-    "deno.unstable": true,
     "editor.quickSuggestions": {
         "other": "on",
         "comments": true,
