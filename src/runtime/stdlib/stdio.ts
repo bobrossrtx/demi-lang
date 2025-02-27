@@ -6,33 +6,45 @@ import { MK_NATIVE_FN, MK_NULL } from "../values.ts";
 export function SetupStdioFunctions(env: Environment) {
     // print()
     env.declareVar("print", MK_NATIVE_FN((args, _scope) => {
-        // There are infinite args for print
+        logger.Debug("=== Print Function Start ===");
+        logger.Debug(`Arguments count: ${args.length}`);
+        logger.Debug(`Raw args:`, JSON.stringify(args, null, 2));
         let outstring = "";
-        // console.log(args);
 
-        if (args.length == 0) console.log("");
-        else if (args.length > 0) {
+        if (args.length == 0) {
+            logger.Debug("No arguments, printing empty line");
+            console.log("");
+        } else if (args.length > 0) {
             for (let i = 0; i < args.length; i++) {
-                // outstring += args[i]?.value
+                logger.Debug(`Processing arg ${i}:`, JSON.stringify(args[i], null, 2));
+                logger.Debug(`Argument type: ${args[i].type}`);
+                logger.Debug(`Argument value: ${args[i].value}`);
+                
                 if (args[i].type == "array") {
-                    // TODO: Potentially not effecient, make faster
-                    const arr = []
+                    const arr = [];
                     for (const element in (args[i] as ArrayVal).value) {
-                        arr.push((args[i] as ArrayVal).value[element].value)
+                        arr.push((args[i] as ArrayVal).value[element].value);
                     }
                     outstring += `[ ${arr.join(", ")} ]`;
                 } else if (args[i].type == "function") {
-                    const funcValue= args[i] as FunctionVal;
+                    const funcValue = args[i] as FunctionVal;
                     const params = funcValue && 'params' in funcValue ? funcValue.params : [];
                     outstring += `<function ${funcValue.identifier || 'anonymous'}, params(${params.join(", ")})>`;
-                } else {
+                } else if (args[i].type == "string") {
+                    logger.Debug(`Adding value to outstring: "${args[i].value}"`);
                     outstring += args[i].value;
+                } else {
+                    logger.Debug(`Unknown type ${args[1].type}, trying to use value`);
+                    outstring += args[i].value?.toString() ?? "";
                 }
+                logger.Debug(`Current outstring: "${outstring}"`);
             }
 
+            logger.Debug(`Final outstring: "${outstring}"`);
             console.log(outstring);
         }
 
+        logger.Debug("=== Print Function End ===");
         return MK_NULL();
     }), true);
 

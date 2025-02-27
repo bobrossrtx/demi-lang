@@ -1,20 +1,72 @@
-import { ClassDeclaration, ForStatement, FunctionDeclaration, IfStatement, Program, ReturnStatement, VarDeclaration, WhileStatement } from "../../frontend/ast.ts";
+import { ClassDeclaration, ForStatement, FunctionDeclaration, IfStatement, Program, ReturnStatement, VarDeclaration, WhileStatement, TemplateString } from "../../frontend/ast.ts";
 import { logger } from "../../helpers/helpers.ts";
 import { evaluate } from "../interpreter.ts";
 import { RuntimeVal,MK_NULL, FunctionVal, ClassVal } from "../values.ts";
 import Environment from "../environment.ts";
 
 export function eval_program(program: Program, env: Environment): RuntimeVal {
+    logger.Debug("\n=== Program Evaluation Start ===");
     let lastEvaluated: RuntimeVal = MK_NULL();
-    for (const stmt of program.body)
+    
+    for (const stmt of program.body) {
+        logger.Debug(`Evaluating statement: ${stmt.kind}`);
+        logger.Debug("Statement details:", JSON.stringify(stmt, null, 2));
+        
+        if (stmt.kind === "VarDeclaration") {
+            logger.Debug("Variable Declaration found:");
+            logger.Debug("- Identifier:", (stmt as VarDeclaration).identifier);
+            logger.Debug("- Value kind:", (stmt as VarDeclaration).value?.kind);
+            logger.Debug("- Full value:", JSON.stringify((stmt as VarDeclaration).value, null, 2));
+        }
+        
         lastEvaluated = evaluate(stmt, env);
+        logger.Debug("Statement evaluated to:", JSON.stringify(lastEvaluated, null, 2));
+    }
+    
+    logger.Debug("=== Program Evaluation End ===\n");
     return lastEvaluated;
 }
 
+// export function eval_var_decl(declaration: VarDeclaration, env: Environment): RuntimeVal {
+//     const value = declaration.value ? evaluate(declaration.value, env) : MK_NULL();
+//     return env.declareVar(declaration.identifier, value, declaration.constant);
+// }    
 export function eval_var_decl(declaration: VarDeclaration, env: Environment): RuntimeVal {
+    logger.Debug("\n=== Variable Declaration Start ===");
+    logger.Debug(`Declaring: ${declaration.identifier}`);
+    logger.Debug("Raw declaration:", JSON.stringify(declaration, null, 2));
+
+    // First, analyze the value's type
+    if (declaration.value) {
+        logger.Debug(`Value kind: ${declaration.value.kind}`);
+        
+        if (declaration.value.kind === "TemplateString") {
+            logger.Debug("Found template string declaration:");
+            logger.Debug("Template parts:", JSON.stringify((declaration.value as TemplateString).parts, null, 2));
+            
+            // Evaluate template string first
+            const evaluated = evaluate(declaration.value, env);
+            logger.Debug("Template string evaluated to:", JSON.stringify(evaluated, null, 2));
+            
+            // Now store the evaluated result
+            env.declareVar(declaration.identifier, evaluated, declaration.constant);
+            return evaluated;
+        }
+    }
+
+    // Handle non-template string cases
     const value = declaration.value ? evaluate(declaration.value, env) : MK_NULL();
-    return env.declareVar(declaration.identifier, value, declaration.constant);
-}    
+    logger.Debug("Evaluated value:", JSON.stringify(value, null, 2));
+    
+    env.declareVar(declaration.identifier, value, declaration.constant);
+    
+    // Verify final stored value
+    const stored = env.lookupVar(declaration.identifier);
+    logger.Debug("Final stored value:", JSON.stringify(stored, null, 2));
+    logger.Debug("=== Variable Declaration End ===\n");
+    
+    return value;
+}
     
 export function eval_function_decl(declaration: FunctionDeclaration, env: Environment): RuntimeVal {
     // Create new function scope
