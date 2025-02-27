@@ -1,7 +1,5 @@
 ------------------ TODO ------------------
 
-- Add support for string interpolation.
-
 - Fix objects (Required)
 - Add support for classes (Requirments: objects)
 
@@ -14,6 +12,10 @@
 ##########################################
 
 ----------------- WORKING ----------------
+
+- Add support for string interpolation.
+[/] - Setting variables with interpolated strings are working
+[X] - Using interpolated strings within function calls.
 
 - Array features eg:
     - Selecting array elements [/]

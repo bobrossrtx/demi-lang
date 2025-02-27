@@ -34,3 +34,71 @@
     - Exports are added to an array of Demi variables which can be appended onto the programs locals after importing
 
 --------------------------------------------------------------------------------
+
+Notes for Tomorrow - Template String Implementation
+Current Issue
+Template string evaluation is not properly passing through variable declaration
+String parts are being lost between lexer and interpreter stages
+Debug Points to Check
+Lexer Stage
+Parser Stage
+Check template string node creation
+Verify all parts are preserved in AST
+Interpreter Flow
+Test Case
+Key Files to Review
+lexer.ts
+
+Token generation for template strings
+Quote handling order
+parser.ts
+
+Template string AST construction
+Parts array assembly
+interpreter.ts
+
+Variable declaration handling
+Template string evaluation
+Current Debug Output Shows
+Next Steps
+Add debug logging at key stages
+Verify AST structure preservation
+Track value through evaluation chain
+Check environment variable storage
+
+Analysis Plan for Tomorrow
+--------------------------
+
+Looking at the code, here's what we should focus on for debugging the template string evaluation:
+
+1. Entry Point: Investigate how variable declarations flow through the interpreter
+   - Starts in evaluate() with case "VarDeclaration"
+   - Passes to eval_var_decl() in statements.ts
+2. AST Structure: Check the template string AST node structure
+
+   - TemplateString node handling in evaluate()
+   - Parts array construction in parser
+   - Value preservation through evaluation stages
+3. Debug Points: Add logging at these key locations:
+    // Initial variable declaration
+    case "VarDeclaration": {
+        logger.Debug("VarDeclaration entry point");
+        // ...
+    }
+
+    // Template string evaluation
+    case "TemplateString": {
+        logger.Debug("Template string evaluation");
+        // ...
+    }
+
+    // Variable storage
+    env.declareVar() // in Environment class
+4. Test Case:
+    let name = "World";
+    let test = `Hello ${name}!`;
+    print(test);
+
+This will help track the value's path through the evaluation process and identify where the template string content is being lost.
+
+>>> Check out github copilot chat: (Demi String Interpolation implementation)
