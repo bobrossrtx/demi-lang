@@ -13,10 +13,33 @@
 
 ----------------- WORKING ----------------
 
-- Array features eg:
+- Array features eg: (Done)
     - Selecting array elements [/]
-    - Add array methods (Variables with type ArrayVal will have callable methods)
-        - EG: `let i = [1, 2]; i.push(3);`
+    - Added array methods (Variables with type ArrayVal will have callable methods)
+        - length()
+        - push()
+        - pop()
+        - includes
+        - indexOf
+        - join
+    - Future Array methods to be added: (Important but can be done over time.)
+        - slice()
+        - concat()
+        - reverse()
+        - shift()
+        - unshift()
+        - filter()
+        - map()
+        - reduce()
+        - sort()
+        - every()
+        - some()
+        - find()
+        - findIndex()
+        - from()
+        - toString()
+        - flat()
+        - flatMap()
 
 - Working on error handling and beautiful error messages
     (Always updating)
