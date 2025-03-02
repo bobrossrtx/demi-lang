@@ -1,0 +1,32 @@
+let arr = [1, 2, 3];
+
+# Test array methods
+print(`Initial array: ${arr}`);          # Expected: [1, 2, 3]
+print(`Length: ${arr.length()}`);        # Expected: 3
+
+# Test push
+arr.push(4);
+print(`After push: ${arr}`);            # Expected: [1, 2, 3, 4]
+
+# Test pop
+let popped = arr.pop();
+print(`Popped value: ${popped}`);        # Expected: 4
+print(`After pop: ${arr}`);             # Expected: [1, 2, 3]
+
+# Test array indexing
+print(`First element: ${arr[0]}`);      # Expected: 1
+print(`Last element: ${arr[2]}`);       # Expected: 3
+
+# Test array includes
+print(`Includes 2: ${arr.includes(2)}`); # Expected: true
+print(`Includes 5: ${arr.includes(5)}`); # Expected: false
+
+# Test array indexOf
+print(`Index of 2: ${arr.indexOf(2)}`);  # Expected: 1
+print(`Index of 5: ${arr.indexOf(5)}`);  # Expected: -1
+
+# Test array join
+print(`Joined array: ${arr.join(", ")}`); # Expected: 1, 2, 3
+
+# Test array adding
+print(`Array sum of ${arr.join(" + ")} = ${arr[0] + arr[1] + arr[2]}`); # Expected: 6
