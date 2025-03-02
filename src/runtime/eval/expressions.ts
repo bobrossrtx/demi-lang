@@ -1,9 +1,38 @@
-import { ArrayLiteral, AssignmentExpr, BinaryExpr, CallExpr, ComparisonExpr, Expr, Identifier, MemberExpr, NumericLiteral, ObjectLiteral, ReturnStatement } from "../../frontend/ast.ts";
-import { logger } from "../../helpers/helpers.ts";
-import { evaluate } from "../interpreter.ts";
-import { ArrayVal, BooleanVal, FunctionVal, MK_BOOL, MK_NULL, NativeFnVal, NumberVal, ObjectVal, RuntimeVal, StringVal } from "../values.ts";
-import { eval_return_statement } from "./statements.ts";
-import Environment from "../environment.ts";
+import Environment from '../environment.ts';
+import {
+    ArrayLiteral,
+    AssignmentExpr,
+    BinaryExpr,
+    CallExpr,
+    ComparisonExpr,
+    Expr,
+    Identifier,
+    MemberExpr,
+    NumericLiteral,
+    ObjectLiteral,
+    ReturnStatement,
+    StringLiteral,
+    TemplateString
+    } from '../../frontend/ast.ts';
+import {
+    valueToString,
+    ArrayVal,
+    ArrayMethods,
+    BooleanVal,
+    FunctionVal,
+    MK_BOOL,
+    MK_NULL,
+    MK_NUMBER,
+    MK_STRING,
+    NativeFnVal,
+    NumberVal,
+    ObjectVal,
+    RuntimeVal,
+    StringVal
+    } from '../values.ts';
+import { eval_return_statement } from './statements.ts';
+import { evaluate } from '../interpreter.ts';
+import { logger } from '../../helpers/helpers.ts';
 
 export function eval_numeric_binary_expr(lhs: NumberVal, rhs: NumberVal, binop: BinaryExpr): RuntimeVal {
     let results: number|null = 0;
@@ -127,32 +156,132 @@ export function eval_array_expr(array: ArrayLiteral, env: Environment): RuntimeV
     return arr;
 }
 
+export function eval_template_string(expr: TemplateString, env: Environment): RuntimeVal {
+    let output = "";
+
+    logger.Debug("=== Template String Evaluation ===");
+    logger.Debug(`Number of parts: ${expr.parts.length}`);
+    logger.Debug(`Parts:`, JSON.stringify(expr, null, 2));
+    
+    for (const part of expr.parts) {
+        if (part.kind === "StringLiteral") {
+            logger.Debug(`Processing string literal: "${(part as StringLiteral).value}"`);
+            output += (part as StringLiteral).value;
+        } else {
+            logger.Debug(`Processing expression: ${JSON.stringify(part)}`);
+            const value = evaluate(part, env);
+            logger.Debug(`Expression evaluated to: ${JSON.stringify(value)}`);
+            output += valueToString(value);  // Use valueToString instead of direct toString
+        }
+        logger.Debug(`Current output: "${output}"`);
+    }
+
+    logger.Debug("Output:", output);
+    const result = MK_STRING(output);
+    logger.Debug(`Returning RuntimeVal: ${JSON.stringify(result)}`);
+    logger.Debug(`Returning to caller: ${new Error().stack?.split('\n')[2]}`);
+    logger.Debug("=== Template String Evaluation End ===");
+    return result;
+}
+
 export function eval_member_expr(expr: MemberExpr, env: Environment): RuntimeVal {
     // const obj = (env.lookupVar(expr.object.symbol)) as ObjectVal;
     // return (obj.properties.get(expr.property.symbol)) as RuntimeVal
 
     const obj = env.lookupVar(expr.object.symbol);
-    const array = {
-        type: "array",
-    } as ArrayVal;
-    if (obj.type == "array") {
-        array.value = (obj as ArrayVal).value;
 
-        // return (array.value[expr.property.]) as RuntimeVal;
-        if (expr.property.kind == "NumericLiteral") {
-            return (array.value[(expr.property as NumericLiteral).value]) as RuntimeVal;
-        } else if (expr.property.kind == "Identifier") {
-            const variable = env.lookupVar((expr.property as Identifier).symbol);
-            if (variable.type == "number")
-                return (array.value[(variable as NumberVal).value]) as RuntimeVal;
-            else {
-                logger.RuntimeError(`Array index should be of type number, found ${variable.type} | ${variable.line}:${variable.column}`);
-                Deno.exit(1);
+    if (obj.type === "array" && expr.object.kind === "Identifier") {
+        const array = obj as ArrayVal;
+
+        if (expr.property.kind === "Identifier") {
+            const methodName = (expr.property as Identifier).symbol;
+            
+            const methods: ArrayMethods = {
+                "push": {
+                    type: "native-fn",
+                    call: (args: RuntimeVal[]) => {
+                        if (args.length !== 1) {
+                            throw "Array push method requires one argument";
+                        }
+                        array.value.push(args[0]);
+                        return MK_NULL();
+                    },
+                    line: expr.line,
+                    column: expr.column
+                } as NativeFnVal,
+                "pop": {
+                    type: "native-fn",
+                    call: () => {
+                        if (array.value.length === 0) {
+                            throw "Cannot pop from empty array";
+                        }
+                        return array.value.pop() || MK_NULL();
+                    },
+                    line: expr.line,
+                    column: expr.column
+                } as NativeFnVal,
+                "length": {
+                    type: "native-fn",
+                    call: () => MK_NUMBER(array.value.length),
+                    line: expr.line,
+                    column: expr.column
+                } as NativeFnVal,
+                "includes": {
+                    type: "native-fn",
+                    call: (args: RuntimeVal[]) => {
+                        if (args.length !== 1) {
+                            throw "Array includes method requires one argument";
+                        }
+                        const target = args[0];
+                        return MK_BOOL(array.value.some(item => 
+                            item.type === target.type && item.value === target.value
+                        ));
+                    },
+                    line: expr.line,
+                    column: expr.column
+                } as NativeFnVal,
+                "indexOf": {
+                    type: "native-fn",
+                    call: (args: RuntimeVal[]) => {
+                        if (args.length !== 1) {
+                            throw "Array indexOf method requires one argument";
+                        }
+                        const target = args[0];
+                        return MK_NUMBER(array.value.findIndex(item => 
+                            item.type === target.type && item.value === target.value
+                        ));
+                    },
+                    line: expr.line,
+                    column: expr.column
+                } as NativeFnVal,
+                "join": {
+                    type: "native-fn",
+                    call: (args: RuntimeVal[]) => {
+                        const separator = args.length > 0 ? valueToString(args[0]) : ",";
+                        return MK_STRING(array.value.map(v => valueToString(v)).join(separator));
+                    },
+                    line: expr.line,
+                    column: expr.column
+                } as NativeFnVal
+            } as const;
+
+            if (methods[methodName]) {
+                return methods[methodName];
             }
-        } else {
-            Deno.exit(1);
         }
-    } else if (obj.type == "object") {
+
+        // Handle array indexing
+        if (expr.property.kind === "NumericLiteral") {
+            const index = (expr.property as NumericLiteral).value;
+            if (index >= 0 && index < array.value.length) {
+                return array.value[index];
+            }
+            logger.RuntimeError(`Array index out of bounds: ${index} | ${expr.line}:${expr.column}`);
+            return MK_NULL();
+        }
+    }
+    
+    if (obj.type == "object") {
         logger.CustomError("Unimplemented Error", `Object member expressions have not yet been implemented | ${obj.line}:${obj.column}`);
         Deno.exit(1);
     } else {

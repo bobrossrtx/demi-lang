@@ -39,9 +39,20 @@ export interface StringVal extends RuntimeVal {
     value: string;
 }
 
+export interface ArrayMethods {
+    [key: string]: NativeFnVal;
+    push: NativeFnVal;
+    pop: NativeFnVal;
+    length: NativeFnVal;
+    includes: NativeFnVal;
+    indexOf: NativeFnVal;
+    join: NativeFnVal;
+}
+
 export interface ArrayVal extends RuntimeVal {
     type: "array";
     value: RuntimeVal[];
+    methods: ArrayMethods;
 }
 
 export interface ObjectVal extends RuntimeVal {
@@ -77,6 +88,57 @@ export interface ClassVal extends RuntimeVal {
     constructor: FunctionVal;
     declarationEnv: Environment;
     body: Stmt[];
+}
+
+export function valueToString(val: RuntimeVal): string {
+    if (!val) return "";
+    
+    switch (val.type) {
+        case "number":
+        case "boolean":
+            return val.value?.toString() ?? "";
+        case "string":
+            return val.value?.toString() ?? "";
+            case "array": {
+                const arrayVal = val as ArrayVal;
+                if (!arrayVal.value) return "[]";
+                
+                // Map array values to strings
+                const values = arrayVal.value.map(item => {
+                    switch (item.type) {
+                        case "string":
+                            return `"${item.value}"`;
+                        case "array":
+                            return valueToString(item); // Recursive for nested arrays
+                        case "null":
+                            return "null";
+                        default:
+                            return item.value?.toString() ?? "";
+                    }
+                });
+                
+                return `[${values.join(", ")}]`;
+            }
+        case "null":
+            return "null";
+        case "object": {
+            // Cast to ObjectVal first to access properties
+            const objVal = val as ObjectVal;
+            if (!objVal.properties) return "{}";
+            
+            const entries = Array.from(objVal.properties.entries())
+                .map(([key, value]) => `${key}: ${valueToString(value)}`);
+            return `{${entries.join(", ")}}`;
+        }
+        case "function": {
+            const funcVal = val as FunctionVal;
+            return `<function ${funcVal.identifier || 'anonymous'}>`;
+        }
+        case "native-fn":
+            return "<native function>";
+        default:
+            return val.value?.toString() ?? "";
+    }
 }
 
 export function MK_NULL(): NullVal {
@@ -122,4 +184,78 @@ export function MK_OBJECT(properties: Map<string, RuntimeVal>): RuntimeVal {
 
 export function MK_NATIVE_FN(call: FunctionCall): RuntimeVal {
     return { type: "native-fn", call } as NativeFnVal;
+}
+
+export function MK_ARRAY(values: RuntimeVal[], line = 0, column = 0): ArrayVal {
+    const methods: ArrayMethods = {
+        push: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+                if (args.length !== 1) {
+                    throw "Array push method requires one argument";
+                }
+                values.push(args[0]);
+                return MK_NULL();
+            },
+            line,
+            column
+        },
+        pop: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+                if (values.length === 0) {
+                    throw "Array pop method requires a non-empty array";
+                }
+                return values.pop() || MK_NULL();
+            },
+            line,
+            column
+        },
+        length: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => 
+                MK_NUMBER(values.length),
+            line,
+            column
+        },
+        includes: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+                if (args.length !== 1) {
+                    throw "Array includes method requires one argument";
+                }
+                return MK_BOOL(values.some(v => v.value === args[0].value));
+            },
+            line,
+            column
+        },
+        indexOf: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+                if (args.length !== 1) {
+                    throw "Array indexOf method requires one argument";
+                }
+                return MK_NUMBER(values.findIndex(v => v.value === args[0].value));
+            },
+            line,
+            column
+        },
+        join: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+                const separator = args.length > 0 ? valueToString(args[0]) : ",";
+                return MK_STRING(values.map(v => valueToString(v)).join(separator));
+            },
+            line,
+            column
+        }
+    };
+
+    return {
+        type: "array",
+        value: values,
+        methods,
+        line,
+        column
+    };
 }
