@@ -1,0 +1,60 @@
+# 1. Basic template string
+let name = "World";
+let basic = `Hello ${name}!`;
+print(basic);  # Expected: Hello World!
+
+# 2. Multiple interpolations
+let first = "John";
+let last = "Doe";
+print(`${first} ${last}`);  # Expected: John Doe
+
+# 3. Empty template strings
+let empty = ``;
+print(`${empty}${name}${empty}`);  # Expected: World
+
+# 4. Nested template strings
+let inner = "nested";
+let nested = `A ${`${inner} template`} string`;
+print(nested);  # Expected: A nested template string
+
+# 5. Expressions in template strings
+let a = 5;
+let b = 10;
+print(`${a} plus ${b} equals ${a + b}`);  # Expected: 5 plus 10 equals 15
+
+# 6. Function calls in template strings
+fn getTitle() {
+    return "Mr.";
+}
+print(`Hello ${getTitle()} ${name}`);  # Expected: Hello Mr. World
+
+# 7. Template strings in function arguments
+fn welcome(msg) {
+    print(msg);
+}
+welcome(`Welcome ${name}!`);  # Expected: Welcome World!
+
+# 8. Multiple function arguments with template strings
+fn format(prefix, msg) {
+    print(`${prefix}: ${msg}`);
+}
+format("Info", `User ${name} logged in`);  # Expected: Info: User World logged in
+
+# 9. Special characters
+let path = "C:\\Users";
+print(`File path: ${path}\\${name}`);  # Expected: File path: C:\Users\World
+
+# # 10. Object property access
+# let user = {
+#     name: "John",
+#     age: 30
+# };
+# print(`${user.name} is ${user.age} years old`);  # Expected: John is 30 years old
+
+# 11. String concatenation in template
+print(`Pre${`Inner`}Post`);  # Expected: PreInnerPost
+
+# 12. Empty interpolation
+print(`Start${""}End`);  # Expected: StartEnd
+# 13. Empty interpolation
+print(`Start${}End`);  # Expected: StartEnd

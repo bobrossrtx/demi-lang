@@ -13,10 +13,6 @@
 
 ----------------- WORKING ----------------
 
-- Add support for string interpolation.
-[/] - Setting variables with interpolated strings are working
-[X] - Using interpolated strings within function calls.
-
 - Array features eg:
     - Selecting array elements [/]
     - Add array methods (Variables with type ArrayVal will have callable methods)
@@ -93,6 +89,10 @@
 
 - Add support for boolean operators (ie &&, ||, !) (combines comparison statements)
     Support for (&& + || + !) seems to be working.
+
+- Add support for string interpolation.
+[/] - Setting variables with interpolated strings are working
+[/] - Using interpolated strings within function calls.
 
 ------------------ DONE ------------------
 
