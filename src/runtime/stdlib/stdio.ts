@@ -1,7 +1,7 @@
 import { logger, maths } from "../../helpers/helpers.ts";
 import Environment from "../environment.ts";
 import { ArrayVal, MK_NUMBER, MK_STRING, NumberVal, StringVal, FunctionVal } from "../values.ts";
-import { MK_NATIVE_FN, MK_NULL } from "../values.ts";
+import { MK_NATIVE_FN, MK_NULL, valueToString } from "../values.ts";
 
 export function SetupStdioFunctions(env: Environment) {
     // print()
@@ -21,11 +21,23 @@ export function SetupStdioFunctions(env: Environment) {
                 logger.Debug(`Argument value: ${args[i].value}`);
                 
                 if (args[i].type == "array") {
-                    const arr = [];
-                    for (const element in (args[i] as ArrayVal).value) {
-                        arr.push((args[i] as ArrayVal).value[element].value);
-                    }
-                    outstring += `[ ${arr.join(", ")} ]`;
+                    const arrayVal = args[i] as ArrayVal;
+                    const values = arrayVal.value.map(val => {
+                        switch (val.type) {
+                            case "number":
+                            case "boolean":
+                                return val.value;
+                            case "string":
+                                return `"${val.value}"`;
+                            case "array":
+                                return valueToString(val);
+                            case "null":
+                                return "null";
+                            default:
+                                return val.value?.toString() ?? "";
+                        }
+                    });
+                    outstring += `[${values.join(", ")}]`;
                 } else if (args[i].type == "function") {
                     const funcValue = args[i] as FunctionVal;
                     const params = funcValue && 'params' in funcValue ? funcValue.params : [];
@@ -34,8 +46,9 @@ export function SetupStdioFunctions(env: Environment) {
                     logger.Debug(`Adding value to outstring: "${args[i].value}"`);
                     outstring += args[i].value;
                 } else {
-                    logger.Debug(`Unknown type ${args[1].type}, trying to use value`);
-                    outstring += args[i].value?.toString() ?? "";
+                    // logger.Debug(`Unknown type ${args[i].type}, trying to use value`);
+                    // outstring += args[i].value?.toString() ?? "";
+                    outstring += valueToString(args[i]);
                 }
                 logger.Debug(`Current outstring: "${outstring}"`);
             }

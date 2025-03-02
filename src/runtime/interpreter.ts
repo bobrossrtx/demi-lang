@@ -33,6 +33,7 @@ eval_array_expr,
     eval_identifier,
     eval_member_expr,
     eval_object_expr,
+    eval_template_string
     } from './eval/expressions.ts';
 import {
 eval_class_decl,
@@ -71,34 +72,8 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return MK_NUMBER((astNode as NumericLiteral).value);
         case "StringLiteral":
             return MK_STRING((astNode as StringLiteral).value);
-        case "TemplateString": {
-            const template = astNode as TemplateString;
-            let output = "";
-
-            logger.Debug("=== Template String Evaluation ===");
-            logger.Debug(`Number of parts: ${template.parts.length}`);
-            logger.Debug(`Parts:`, JSON.stringify(template, null, 2));
-            
-            for (const part of template.parts) {
-                if (part.kind === "StringLiteral") {
-                    logger.Debug(`Processing string literal: "${(part as StringLiteral).value}"`);
-                    output += (part as StringLiteral).value;
-                } else {
-                    logger.Debug(`Processing expression: ${JSON.stringify(part)}`);
-                    const value = evaluate(part, env);
-                    logger.Debug(`Expression evaluated to: ${JSON.stringify(value)}`);
-                    output += value.value?.toString() ?? "";
-                }
-                logger.Debug(`Current output: "${output}"`);
-            }
-
-            logger.Debug("Output:", output);
-            const result = MK_STRING(output);
-            logger.Debug(`Returning RuntimeVal: ${JSON.stringify(result)}`);
-            logger.Debug(`Returning to caller: ${new Error().stack?.split('\n')[2]}`);
-            logger.Debug("=== Template String Evaluation End ===");
-            return result;
-        }
+        case "TemplateString": 
+            return eval_template_string(astNode as TemplateString, env);
         case "Identifier":
             return eval_identifier(astNode as Identifier, env);
         case "AssignmentExpr":
