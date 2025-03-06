@@ -41,12 +41,19 @@ export interface StringVal extends RuntimeVal {
 
 export interface ArrayMethods {
     [key: string]: NativeFnVal;
+    value: NativeFnVal;
     push: NativeFnVal;
     pop: NativeFnVal;
     length: NativeFnVal;
     includes: NativeFnVal;
     indexOf: NativeFnVal;
     join: NativeFnVal;
+    slice: NativeFnVal;
+    concat: NativeFnVal;
+    reverse: NativeFnVal;
+    shift: NativeFnVal;
+    unshift: NativeFnVal;
+    filter: NativeFnVal;
 }
 
 export interface ArrayVal extends RuntimeVal {
@@ -188,9 +195,24 @@ export function MK_NATIVE_FN(call: FunctionCall): RuntimeVal {
 
 export function MK_ARRAY(values: RuntimeVal[], line = 0, column = 0): ArrayVal {
     const methods: ArrayMethods = {
+        value: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], _env: Environment, _line: number, _column: number) => {
+                if (args.length!== 1) {
+                    throw "Array value method requires one argument";
+                }
+                const index = Number(args[0].value);
+                if (index < 0 || index >= values.length) {
+                    throw "Index out of bounds";
+                }
+                return values[index];
+            },
+            line,
+            column
+        },
         push: {
             type: "native-fn",
-            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+            call: (args: RuntimeVal[], _env: Environment, _line: number, _column: number) => {
                 if (args.length !== 1) {
                     throw "Array push method requires one argument";
                 }
@@ -202,9 +224,9 @@ export function MK_ARRAY(values: RuntimeVal[], line = 0, column = 0): ArrayVal {
         },
         pop: {
             type: "native-fn",
-            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+            call: (_args: RuntimeVal[], _env: Environment, _line: number, _column: number) => {
                 if (values.length === 0) {
-                    throw "Array pop method requires a non-empty array";
+                    throw "Cannot pop from empty array";
                 }
                 return values.pop() || MK_NULL();
             },
@@ -213,43 +235,113 @@ export function MK_ARRAY(values: RuntimeVal[], line = 0, column = 0): ArrayVal {
         },
         length: {
             type: "native-fn",
-            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => 
+            call: (_args: RuntimeVal[], _env: Environment, _line: number, _column: number) => 
                 MK_NUMBER(values.length),
             line,
             column
         },
         includes: {
             type: "native-fn",
-            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+            call: (args: RuntimeVal[], _env: Environment, _line: number, _column: number) => {
                 if (args.length !== 1) {
                     throw "Array includes method requires one argument";
                 }
-                return MK_BOOL(values.some(v => v.value === args[0].value));
+                const target = args[0];
+                return MK_BOOL(values.some(item => 
+                    item.type === target.type && item.value === target.value
+                ));
             },
             line,
             column
         },
         indexOf: {
             type: "native-fn",
-            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+            call: (args: RuntimeVal[], _env: Environment, _line: number, _column: number) => {
                 if (args.length !== 1) {
                     throw "Array indexOf method requires one argument";
                 }
-                return MK_NUMBER(values.findIndex(v => v.value === args[0].value));
+                const target = args[0];
+                return MK_NUMBER(values.findIndex(item => 
+                    item.type === target.type && item.value === target.value
+                ));
             },
             line,
             column
         },
         join: {
             type: "native-fn",
-            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+            call: (args: RuntimeVal[], _env: Environment, _line: number, _column: number) => {
                 const separator = args.length > 0 ? valueToString(args[0]) : ",";
                 return MK_STRING(values.map(v => valueToString(v)).join(separator));
             },
             line,
             column
+        },
+        slice: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], _env: Environment, line: number, column: number) => {
+                const start = args[0]? Number(args[0].value) : 0;
+                const end = args[1]? Number(args[1].value) : values.length;
+                return MK_ARRAY(values.slice(start, end), line, column);
+            },
+            line,
+            column
+        },
+        concat: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], _env: Environment, line: number, column: number) => {
+                if (args.length!== 1) {
+                    throw "Array concat method requires one argument";
+                }
+                const otherArray = args[0] as ArrayVal;
+                return MK_ARRAY(values.concat(otherArray.value), line, column);
+            },
+            line,
+            column
+        },
+        reverse: {
+            type: "native-fn",
+            call: (_args: RuntimeVal[], _env: Environment, line: number, column: number) => 
+                MK_ARRAY(values.slice().reverse(), line, column),
+            line,
+            column
+        },
+        shift: {
+            type: "native-fn",
+            call: (_args: RuntimeVal[], _env: Environment, _line: number, _column: number) => {
+                if (values.length === 0) {
+                    throw "Cannot shift from empty array";
+                }
+                return values.shift() || MK_NULL();
+            },
+            line,
+            column
+        },
+        unshift: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], _env: Environment, _line: number, _column: number) => {
+                values.unshift(...args);
+                return MK_NUMBER(values.length);
+            },
+            line,
+            column
+        },
+        filter: {
+            type: "native-fn",
+            call: (args: RuntimeVal[], env: Environment, line: number, column: number) => {
+                if (args.length !== 1) {
+                    throw "Array filter method requires one argument";
+                }
+                const callback = args[0] as NativeFnVal;
+                return MK_ARRAY(values.filter(item => {
+                    const result = callback.call([item], env, line, column);
+                    return result.type === "boolean" && result.value;
+                }), line, column);
+            },
+            line,
+            column
         }
-    };
+    } as const;
 
     return {
         type: "array",
