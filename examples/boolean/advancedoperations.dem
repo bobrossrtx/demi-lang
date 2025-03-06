@@ -1,0 +1,28 @@
+# Array Advanced Metthods
+# Baring in mind, you must set the variable to the new value earch time you use a method.
+
+let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+# slice()
+let slice = arr.slice(0, 5);
+print(`slice(0, 5) = ${slice}`); # [1, 2, 3, 4, 5]
+
+# concat()
+let concat = arr.concat([11, 12, 13, 14, 15]);
+print(`concat([11, 12, 13, 14, 15]) = ${concat}`); # [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+# reverse()
+let reverse = arr.reverse();
+print(`reverse() = ${reverse}`); # [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+
+# Shift and Unshift (string interpolation)
+let shift = arr.shift();
+print(`shift() = ${shift}`); # 1
+let unshift = arr.unshift(0);
+print(`unshift(0) = ${unshift} | ${arr}`); # 10
+
+# # Filter
+# let filter = arr.filter(fn(num) {
+#     return num > 5;
+# });
+# print(`filter((num) => num > 5) = ${filter}`); # [6, 7, 8, 9, 10]
