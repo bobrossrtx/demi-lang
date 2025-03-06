@@ -1,0 +1,37 @@
+# # Pre-define sleep_ms() function
+# fn sleep_ms(ms) {
+#     let start = get_time();
+#     let end = start + ms;
+
+#     let currtime = get_time();
+#     while (currtime != end) {
+#         currtime = get_time();
+#     }
+# }
+
+# Example 4: Array map implementation using callback
+print("\n4. Array map implementation using callback:");
+let map = fn(arr, callback) {
+    let result = [];
+    let i = 0;
+    let length = arr.length();
+    print(`arr: ${arr}`);
+    
+    while (i < length) {
+        let current_val = arr.value(i);
+        let transformed = callback(current_val);
+        result.push(transformed);
+        i = i + 1;
+    }
+    return result;
+};
+
+# Using the map function
+let numbers = [1, 2, 3, 4, 5];
+let doubled = map(numbers, fn(num) {
+    return num * 2;
+});
+print(`Original: ${numbers}`);
+print(`Doubled: ${doubled}`);
+# Output: Original: [1, 2, 3, 4, 5]
+#         Doubled: [2, 4, 6, 8, 10]
