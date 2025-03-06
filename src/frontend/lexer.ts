@@ -11,7 +11,8 @@ export enum TokenType {
     StringInterpolStart,    // ${
     StringInterpolEnd,      // }
 
-    // ClassObject,
+    // Arrow function
+    Arrow,                  // =>
 
     // Keyword
     Let,
@@ -73,11 +74,15 @@ function token(value = "", type: TokenType, line: number, column: number): Token
 }
 
 function isalpha(src: string): boolean {
-    return /^[a-zA-Z_]+$/.test(src);
+    return /[a-zA-Z_]/.test(src);
+}
+
+function isalphanumeric(src: string): boolean {
+    return /[a-zA-Z0-9_]/.test(src);
 }
 
 function isint(src: string): boolean {
-    return /^[0-9.]+$/.test(src);
+    return /^[0-9]+$/.test(src);
 }
 
 function isskippable(str: string): boolean {
@@ -86,7 +91,6 @@ function isskippable(str: string): boolean {
 
 
 function buildStringTokens(src: string[], currcol: number, currline: number, tokens: Token[]): [string, number] {
-    const tempcurrcol = currcol;
     const stringType = src[0];
     const isTemplate = stringType === '`';
 
@@ -188,7 +192,15 @@ export function tokenize(sourceCode: string): Token[] {
             case '*':
             case '/':
             case '%': tokens.push(token(src.shift(), TokenType.BinaryOperator, currline, currcol++)); break;
-            case '=': tokens.push(token(src.shift(), TokenType.Equals, currline, currcol++)); break;
+            case '=': 
+                if (src[1] === '>') {
+                    src.shift(); src.shift();
+                    tokens.push(token("=>", TokenType.Arrow, currline, currcol));
+                    currcol += 2;
+                } else {
+                    tokens.push(token(src.shift(), TokenType.Equals, currline, currcol++));
+                }
+                break;
             case '<': tokens.push(token(src.shift(), TokenType.Less, currline, currcol++)); break;
             case '>': tokens.push(token(src.shift(), TokenType.Greater, currline, currcol++)); break;
             case '&':
@@ -229,7 +241,19 @@ export function tokenize(sourceCode: string): Token[] {
                 while (src.length > 0 && src[0] !== '\n') src.shift();
                 break;
             default:
-                if (isint(char)) {
+                if (isalpha(char)) {
+                    const tempcurrcol = currcol;
+                    let ident = char;
+                    src.shift();
+                    currcol++;
+                    while (src.length > 0 && isalphanumeric(src[0])) {
+                        ident += src.shift();
+                        currcol++;
+                    }
+                    const reserved = KEYWORDS[ident];
+                    tokens.push(token(ident, reserved ?? TokenType.Identifier, currline, tempcurrcol));
+                }
+                else if (isint(char)) {
                     const tempcurrcol = currcol;
                     let num = "";
                     while (src.length > 0 && isint(src[0])) {
@@ -248,16 +272,6 @@ export function tokenize(sourceCode: string): Token[] {
                         currcol++;
                     }
                     tokens.push(token(num, TokenType.Number, currline, tempcurrcol));
-                }
-                else if (isalpha(char)) {
-                    const tempcurrcol = currcol;
-                    let ident = "";
-                    while (src.length > 0 && isalpha(src[0])) {
-                        ident += src.shift();
-                        currcol++;
-                    }
-                    const reserved = KEYWORDS[ident];
-                    tokens.push(token(ident, reserved ?? TokenType.Identifier, currline, tempcurrcol));
                 }
                 else if (isskippable(char)) {
                     src.shift();
