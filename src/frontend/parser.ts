@@ -58,7 +58,7 @@ export default class Parser {
     private expect(type: TokenType, err: string) {
         const prev = this.tokens.shift() as Token;
         if (!prev || prev.type != type) {
-            logger.ParserError(`${err} Expecting: ${TokenType[type]}`);
+            logger.ParserError(`${err} Expecting: ${TokenType[type]}! Lines: (${prev.line}:${prev.column})`);
             Deno.exit(1);
         }
 
@@ -133,7 +133,7 @@ export default class Parser {
                 }
             }
 
-            const right = this.parse_additive_expr();
+            const right = this.parse_logical_expr();
             left = {
                 kind: "ComparisonExpr",
                 left,
@@ -274,8 +274,7 @@ export default class Parser {
         logger.Debug("Parsing variable declaration value");
         logger.Debug("Current token:", JSON.stringify(this.at(), null, 2));
     
-        // Parse the value - let parse_expr handle template strings
-        const value = this.parse_expr();
+        const value = this.parse_assignment_expr();
         logger.Debug("Parsed value:", JSON.stringify(value, null, 2));
     
         const declaration = {
@@ -295,8 +294,20 @@ export default class Parser {
     private parse_fn_decl(): Stmt {
         const line = this.at().line;
         const column = this.at().column;
-        this.eat(); // eat the fn keyword
-        const name = this.expect(TokenType.Identifier, "Expected identifier after function declaration.").value;
+        let name = "";
+        let isArrowFunction = false;
+        
+        if (this.at().type === TokenType.Fn) {
+            this.eat(); // eat the fn keyword
+            if (this.at().type === TokenType.Identifier) {
+                name = this.expect(TokenType.Identifier, "Expected identifier after function declaration.").value;
+            }
+        } else if (this.at().type === TokenType.OpenParen) {
+            isArrowFunction = true;
+        } else {
+            logger.ParserError("Expected 'fn' keyword or '(' for arrow function");
+            Deno.exit(1);
+        }
 
         const args = this.parse_args();
         const params: string[] = [];
@@ -306,8 +317,12 @@ export default class Parser {
                 logger.SyntaxError("Unexpected token found inside function declaration. Expected identifier.");
                 Deno.exit(1);
             }
-
             params.push((arg as Identifier).symbol);
+        }
+
+        // Handle arrow function syntax
+        if (isArrowFunction) {
+            this.expect(TokenType.Arrow, "Expected => for arrow function");
         }
 
         // Check if the function has private or public access
@@ -319,6 +334,25 @@ export default class Parser {
         } else if (this.at().value == "public") {
             this.eat(); // eat the public keyword
             access = "public";
+        }
+
+        // For arrow functions with single expression, wrap it in a return statement
+        if (this.at().type !== TokenType.OpenBrace) {
+            const expr = this.parse_expr();
+            return {
+              kind: "FunctionDeclaration",
+              identifier: name,
+              params,
+              body: [{
+                kind: "ReturnStatement",
+                value: expr as Expr,
+                line: expr.line,
+                column: expr.column
+              }],
+              access,
+              line,
+              column,
+            } as unknown as FunctionDeclaration;
         }
 
         this.expect(TokenType.OpenBrace, "Expected opening brace after function declaration.");
@@ -338,7 +372,7 @@ export default class Parser {
 
         this.expect(TokenType.CloseBrace, "Expected closing brace after function declaration.");
 
-        const fn = {
+        return {
             kind: "FunctionDeclaration",
             identifier: name,
             params,
@@ -347,15 +381,13 @@ export default class Parser {
             line,
             column,
         } as FunctionDeclaration;
-        
-        return fn;
     }
 
     private parse_return_stmt() {
         const line = this.at().line;
         const column = this.at().column;
         this.eat(); // eat the return keyword
-        const value = this.parse_expr();
+        const value = this.parse_additive_expr();
 
         return {
             kind: "ReturnStatement",
@@ -602,7 +634,7 @@ export default class Parser {
     //     let currTok: Token = this.eat()
     //     while (currTok.type != TokenType.CloseBrace)
     //         currTok = this.eat();
-    //     return this.parse_assignment_expr();
+    //     return this.parse_logical_expr();
     // }
 
     private parse_expr(): Expr {
@@ -624,7 +656,7 @@ export default class Parser {
         this.peek()?.type === TokenType.StringInterpolStart) {
         
             logger.Debug("Found template string pattern");
-            let parts: (StringLiteral | Expr)[] = [];
+            const parts: (StringLiteral | Expr)[] = [];
             
             // Add initial string part
             parts.push({
@@ -634,24 +666,7 @@ export default class Parser {
                 column: this.at().column
             } as StringLiteral);
             
-            // // Process interpolation
-            // while (this.at().type === TokenType.StringInterpolStart) {
-            //     this.eat(); // eat ${
-            //     parts.push(this.parse_expr());
-            //     this.expect(TokenType.StringInterpolEnd, "Expected } in template string");
-                
-            //     // Add any string content after }
-            //     if (this.at().type === TokenType.String) {
-            //         parts.push({
-            //             kind: "StringLiteral",
-            //             value: this.eat().value,
-            //             line: this.at().line,
-            //             column: this.at().column
-            //         } as StringLiteral);
-            //     }
-            // }
-
-             // Keep parsing until we reach the end of the template string
+            // Keep parsing until we reach the end of the template string
             while (this.not_eof()) {
                 // Add string part if present
                 if (this.at().type === TokenType.String) {
@@ -668,7 +683,7 @@ export default class Parser {
                 if (this.at().type !== TokenType.StringInterpolStart) break;
                 
                 // Handle interpolation
-                this.eat(); // eat ${
+                this.eat(); // eat ${  
                 logger.Debug("Processing interpolation");
                 const expr = this.parse_expr();
                 parts.push(expr);
@@ -684,120 +699,32 @@ export default class Parser {
             } as TemplateString;
         }
 
-        return this.parse_logical_expr();
+        return this.parse_assignment_expr();
     }
 
+
     private parse_assignment_expr(): Expr {
-        const left = this.parse_object_expr();
+        const left = this.parse_logical_expr();
 
         if (this.at().type == TokenType.Equals) {
-            this.eat(); // eat the equals sign
-            // Check for another equals sign as it might be a comparison expression
-            if (this.at().type == TokenType.Equals) {
-                this.eat(); // eat the second equals sign
+            const line = this.at().line;
+            const column = this.at().column;
+            this.eat(); // eat equals
+            const value = this.parse_expr(); // Changed from parse_additive_expr()
 
-                const right = this.parse_expr();
-
+            // Handle object literal assignments
+            if (left.kind === "Identifier" || left.kind === "MemberExpr") {
                 return {
-                    kind: "ComparisonExpr",
-                    left,
-                    right,
-                    operator: "==",
-                    line: this.at().line,
-                    column: this.at().column
-                } as ComparisonExpr;
+                    kind: "AssignmentExpr",
+                    assignee: left,  // Fixed typo from 'assigne'
+                    value,
+                    line,
+                    column
+                } as AssignmentExpr;
             }
 
-            // Check if it is an array
-            if (this.at().type == TokenType.OpenBrace) {
-                console.log(this.at());
-            }
-            // console.log(this.at());
-
-            const value = this.parse_assignment_expr();
-
-            return {
-                kind: "AssignmentExpr",
-                assigne: left,
-                value,
-                line: this.at().line,
-                column: this.at().column
-            } as AssignmentExpr;
-        } else if (this.at().type == TokenType.Not) {
-            this.eat(); // eat the not sign
-            // Check for another equals sign as it might be a comparison expression
-            if (this.at().type == TokenType.Equals) {
-                this.eat(); // eat the second equals sign
-                
-                const right = this.parse_expr();
-
-                return {
-                    kind: "ComparisonExpr",
-                    left,
-                    right,
-                    operator: "!=",
-                    line: this.at().line,
-                    column: this.at().column
-                } as ComparisonExpr;
-            }
-        } else if (this.at().type == TokenType.Less) {
-            this.eat(); // eat the less than sign
-
-            // Check for another equals sign as it might be a comparison expression
-            if (this.at().type == TokenType.Equals) {
-                this.eat(); // eat the second equals sign
-
-                const right = this.parse_expr();
-
-                return {
-                    kind: "ComparisonExpr",
-                    left,
-                    right,
-                    operator: "<=",
-                    line: this.at().line,
-                    column: this.at().column
-                } as ComparisonExpr;
-            } else {
-                const right = this.parse_expr();
-
-                return {
-                    kind: "ComparisonExpr",
-                    left,
-                    right,
-                    operator: "<",
-                    line: this.at().line,
-                    column: this.at().column
-                } as ComparisonExpr;
-            }
-        } else if (this.at().type == TokenType.Greater) {
-            this.eat(); // eat the greater than sign
-
-            // Check for another equals sign as it might be a comparison expression
-            if (this.at().type == TokenType.Equals) {
-                this.eat(); // eat the second equals sign
-
-                const right = this.parse_expr();
-
-                return {
-                    kind: "ComparisonExpr",
-                    left,
-                    right,
-                    operator: ">=",
-                    line: this.at().line,
-                    column: this.at().column
-                } as ComparisonExpr;
-            } else {
-                const right = this.parse_expr();
-                
-                return {
-                    kind: "ComparisonExpr",
-                    left,
-                    right,
-                    operator: ">",
-                    line: this.at().line,
-                    column: this.at().column
-                } as ComparisonExpr;
-            }
+            logger.ParserError("Invalid left-hand side in assignment expression");
+            Deno.exit(1);
         }
 
         return left;
@@ -807,7 +734,6 @@ export default class Parser {
         const line = this.at().line;
         const column = this.at().column;
 
-        // { Prop[] }
         if (this.at().type !== TokenType.OpenBrace) {
             return this.parse_additive_expr();
         }
@@ -816,53 +742,51 @@ export default class Parser {
         const properties = new Array<Property>();
 
         while (this.not_eof() && this.at().type != TokenType.CloseBrace) {
-            // { key: val, key2: val2 }
-            // { key, key2: val2 }
+            const key = this.expect(
+                TokenType.Identifier,
+                "Unexpected token found inside object literal. Expected identifier."
+            ).value;
 
-            const key = this.expect(TokenType.Identifier, "Unexpected token found inside object literal. Expected identifier.").value;
-
-            // Allow for shorthand syntax
-            if (this.at().type == TokenType.Comma)  {
-                this.eat(); // eat the comma
-                properties.push({
-                    kind: "Property",
-                    key,
-                    line,
-                    column,
-                });
+            // Shorthand syntax handling
+            if (this.at().type == TokenType.Comma) {
+                this.eat();
+                properties.push({ kind: "Property", key, line, column });
                 continue;
-            } else if (this.at().type == TokenType.CloseBrace)  {
-                properties.push({
-                    kind: "Property",
-                    key,
-                    line,
-                    column,
-                });
+            } else if (this.at().type == TokenType.CloseBrace) {
+                properties.push({ kind: "Property", key, line, column });
                 continue;
             }
 
-            // { key: val }
-            this.expect(TokenType.Colon, "Unexpected token found inside object literal. Expected colon.");
-            const value = this.parse_expr();
-            properties.push({
-                kind: "Property",
-                key,
-                value,
-                line, 
-                column, 
-            });
+            // Key-value pair with explicit value
+            this.expect(TokenType.Colon, "Expected colon in object literal");
+            const value = this.parse_expr(); // CRITICAL FIX: Changed from parse_additive_expr()
             
+            properties.push({ 
+                kind: "Property", 
+                key, 
+                value, 
+                line, 
+                column 
+            });
+
             if (this.at().type != TokenType.CloseBrace) {
-                this.expect(TokenType.Comma, "Expected comma or closing brace after object literal property.");
+                this.expect(
+                    TokenType.Comma,
+                    "Expected comma or closing brace after property"
+                );
             }
         }
 
-        this.expect(TokenType.CloseBrace, "Unexpected token found inside object literal. Expected closing brace.");
-        return {
-            kind: "ObjectLiteral",
-            properties,
-            line,
-            column,
+        this.expect(
+            TokenType.CloseBrace,
+            "Unexpected token in object literal. Expected closing brace."
+        );
+        
+        return { 
+            kind: "ObjectLiteral", 
+            properties, 
+            line, 
+            column 
         } as ObjectLiteral;
     }
 
@@ -890,7 +814,8 @@ export default class Parser {
     private parse_call_member_expr(): Expr {
         const member = this.parse_member_expr();
 
-        if (this.at().type == TokenType.OpenParen) {
+        // Only parse arguments if the current token is an opening parenthesis
+        if (this.at().type === TokenType.OpenParen) {
             return this.parse_call_expr(member);
         }
 
@@ -901,17 +826,35 @@ export default class Parser {
         const line = this.at().line;
         const column = this.at().column;
 
-        // First ()
+        // Ensure the current token is an opening parenthesis before parsing arguments
+        if (this.at().type !== TokenType.OpenParen) {
+            logger.ParserError("Unexpected token found. Expected opening parenthesis for function call.");
+            Deno.exit(1);
+        }
+
+        this.eat(); // Consume the opening parenthesis
+
+        const args: Expr[] = [];
+        while (this.not_eof() && this.at().type !== TokenType.CloseParen) {
+            args.push(this.parse_expr());
+
+            if (this.at().type !== TokenType.CloseParen) {
+                this.expect(TokenType.Comma, "Expected comma between function arguments or closing parenthesis.");
+            }
+        }
+
+        this.expect(TokenType.CloseParen, "Expected closing parenthesis after function arguments.");
+
         const call_expr: Expr = {
             kind: "CallExpr",
             caller,
-            args: this.parse_args(),
+            args,
             line,
             column,
         } as CallExpr;
 
-        // Next ()
-        if (this.at().type == TokenType.OpenParen) {
+        // Handle nested function calls
+        if (this.at().type === TokenType.OpenParen) {
             return this.parse_call_expr(call_expr);
         }
 
@@ -919,31 +862,77 @@ export default class Parser {
     }
 
     private parse_args(): Expr[] {
-        this.expect(TokenType.OpenParen, "Unexpected token found inside function call. Expected opening parenthesis.");
         const args: Expr[] = [];
-
-        // Handle all logical expressions within the arguments:;
+        
+        // Expect the opening parenthes
+        this.expect(TokenType.OpenParen, "Unexpected token found inside function call. Expected opening parenthesis.");
         while (this.not_eof() && this.at().type !== TokenType.CloseParen) {
             logger.Debug("=== Parsing Function Argument ===");
             logger.Debug("Current token:", JSON.stringify(this.at(), null, 2));
             logger.Debug("Next token:", JSON.stringify(this.peek(), null, 2));
 
-            // Start of a template string
-            if (this.at().type === TokenType.String && this.peek()?.type === TokenType.StringInterpolStart) {
-                logger.Debug("Found template string pattern");
-                const template = this.parse_template_string();
-                args.push(template);
+            // Handle anonymous function
+            if (this.at().type === TokenType.Fn) {
+                const line = this.at().line;
+                const column = this.at().column;
+                this.eat(); // eat fn keyword
 
-                // Check for a comma or closing parenthesis
-                if (this.at().type !== TokenType.CloseParen && this.at().type !== TokenType.Comma) {
-                    logger.SyntaxError("Unexpected token found inside function call. Expected comma or closing parenthesis.");
-                    logger.Debug("Current token:", JSON.stringify(this.at(), null, 2));
+                const params = this.parse_args().map(arg => {
+                    if (arg.kind !== "Identifier") {
+                        logger.SyntaxError("Function parameters must be identifiers");
+                        Deno.exit(1);
+                    }
+                    return (arg as Identifier).symbol;
+                });
+
+                // check for arrow token and throw an error if found
+                if (this.at().type === TokenType.Arrow) {
+                    logger.SyntaxError("Unexpected Arrow token found inside existing function declaration.");
+                    logger.Info("Arrow functions are not supported inside existing function declarations.");
+                    logger.Example("let func = (a, b) => a + b;");
+                    Deno.exit(1);
+                }
+
+                this.expect(TokenType.OpenBrace, "Expected opening brace after function parameters");
+                const body: Stmt[] = [];
+
+                while (this.not_eof() && this.at().type !== TokenType.CloseBrace) {
+                    body.push(this.parse_stmt());
+                }
+
+                this.expect(TokenType.CloseBrace, "Expected closing brace after function body");
+
+                const fnDecl = {
+                    kind: "FunctionDeclaration",
+                    identifier: "", // Anonymous function
+                    params,
+                    body,
+                    access: "public",
+                    line,
+                    column
+                } as FunctionDeclaration;
+
+                args.push(fnDecl);
+
+                if (this.at().type !== TokenType.CloseParen) {
                     this.expect(TokenType.Comma, "Expected comma between function arguments");
                 }
                 continue;
             }
 
-            const arg = this.parse_expr();
+            // Handle template strings
+            if (this.at().type === TokenType.String && this.peek()?.type === TokenType.StringInterpolStart) {
+                logger.Debug("Found template string pattern");
+                const template = this.parse_template_string();
+                args.push(template);
+
+                if (this.at().type !== TokenType.CloseParen && this.at().type !== TokenType.Comma) {
+                    this.expect(TokenType.Comma, "Expected comma between function arguments");
+                }
+                continue;
+            }
+
+            const arg = this.parse_assignment_expr();
             args.push(arg);
 
             if (this.at().type !== TokenType.CloseParen) {
@@ -952,7 +941,6 @@ export default class Parser {
         }
 
         this.expect(TokenType.CloseParen, "Unexpected token found inside function call. Expected closing parenthesis.");
-
         return args;
     }
 
@@ -1041,7 +1029,20 @@ export default class Parser {
         const line = this.at().line;
         const column = this.at().column;
         this.expect(TokenType.OpenBracket, "Unexpected token found inside array. Expected opening bracket.");
-        const array: Expr = {
+
+        let array: Expr = {
+            kind: "ArrayLiteral",
+            elements: [],
+            line,
+            column
+        } as ArrayLiteral;
+
+        if (this.at().type == TokenType.CloseBracket) {
+            this.eat();
+            return array;
+        }
+
+        array = {
             kind: "ArrayLiteral",
             elements: this.parse_array_elements(),
             line,
@@ -1054,7 +1055,13 @@ export default class Parser {
     }
 
     private parse_array_elements(): Expr[] {
-        const elements = [this.parse_expr()]
+        // Initialize empty array for elements
+        const elements: Expr[] = []
+
+        // Parse first element
+        elements.push(this.parse_expr());
+
+        // Parse remaining elements
         while (this.not_eof() && this.at().type == TokenType.Comma && this.eat()) {
             if (this.at().type == TokenType.CloseBracket) {
                 logger.SyntaxError(`Expected element as part of array | ${this.at().line}:${this.at().column}`)
@@ -1066,32 +1073,24 @@ export default class Parser {
     }
 
     private parse_member_expr(): Expr {
-        const line = this.at().line;
-        const column = this.at().column;
         let object = this.parse_primary_expr();
-
-        // console.log(object);
 
         while (this.at().type == TokenType.Dot || this.at().type == TokenType.OpenBracket) {
             const operator = this.eat();
             let property: Expr;
             let computed: boolean;
 
-            // non-computed values aka object.property
             if (operator.type == TokenType.Dot) {
                 computed = false;
                 property = this.parse_primary_expr();
                 if (property.kind != "Identifier") {
-                    logger.SyntaxError("Unexpected token found inside member expression. Expected identifier.");
+                    logger.SyntaxError("Cannot use dot operator without right hand side being an identifier");
                     Deno.exit(1);
                 }
-            } else if (operator.type == TokenType.OpenBracket) { // computed values aka object[property]
+            } else { // OpenBracket [
                 computed = true;
                 property = this.parse_expr();
-                this.expect(TokenType.CloseBracket, "Unexpected token found inside member expression. Expected closing bracket.");
-            } else {
-                logger.SyntaxError("Unexpected token found inside member expression. Expected dot or opening bracket.");
-                Deno.exit(1);
+                this.expect(TokenType.CloseBracket, "Missing closing bracket in computed property.");
             }
 
             object = {
@@ -1099,8 +1098,8 @@ export default class Parser {
                 object,
                 property,
                 computed,
-                line,
-                column,
+                line: operator.line,
+                column: operator.column
             } as MemberExpr;
         }
         return object;
@@ -1240,6 +1239,8 @@ export default class Parser {
                 return this.parse_return_stmt();
             case TokenType.OpenBracket:
                 return this.parse_array();
+            case TokenType.OpenBrace:
+                return this.parse_object_expr();
             case TokenType.Not: {
                 this.eat(); // eat the not sign
                 const operand = this.parse_expr();
@@ -1252,16 +1253,109 @@ export default class Parser {
                     column,
                 } as UnaryExpr;
             }
+            case TokenType.Fn: {
+                this.eat(); // eat fn keyword
+                const params = this.parse_args().map(arg => {
+                    if (arg.kind !== "Identifier") {
+                        logger.SyntaxError("Function parameters must be identifiers");
+                        Deno.exit(1);
+                    }
+                    return (arg as Identifier).symbol;
+                });
+
+                // check for arrow token and throw an error if found
+                if (this.at().type === TokenType.Arrow) {
+                    logger.SyntaxError("Unexpected Arrow token found inside existing function declaration.");
+                    logger.Info("Arrow functions are not supported inside existing function declarations.");
+                    logger.Example("let func = (a, b) => a + b;");
+                    Deno.exit(1);
+                }
+
+                this.expect(TokenType.OpenBrace, "Expected opening brace after function parameters");
+                const body: Stmt[] = [];
+
+                while (this.not_eof() && this.at().type !== TokenType.CloseBrace) {
+                    body.push(this.parse_stmt());
+                }
+
+                this.expect(TokenType.CloseBrace, "Expected closing brace after function body");
+
+                return {
+                    kind: "FunctionDeclaration",
+                    identifier: "", // Anonymous function
+                    params,
+                    body,
+                    access: "public",
+                    line,
+                    column
+                } as FunctionDeclaration;
+            }
             case TokenType.OpenParen: {
-                this.eat(); // eat the open paren
+                const startLine = this.at().line;
+                const startColumn = this.at().column;
+                this.eat(); // eat (
+
+                // Check if this is an arrow function
+                if (this.peek()?.type === TokenType.Identifier || this.peek()?.type === TokenType.CloseParen) {
+                    const args = this.parse_args(); // Parse potential arguments
+                    if (this.at().type === TokenType.Arrow) {
+                        this.eat(); // eat =>
+                        
+                        const params = args.map(arg => {
+                            if (arg.kind !== "Identifier") {
+                                logger.SyntaxError("Arrow function parameters must be identifiers");
+                                Deno.exit(1);
+                            }
+                            return (arg as Identifier).symbol;
+                        });
+
+                        // Single expression body
+                        if (this.at().type !== TokenType.OpenBrace) {
+                            const expr = this.parse_expr();
+                            return {
+                                kind: "FunctionDeclaration",
+                                identifier: "",
+                                params,
+                                body: [{
+                                    kind: "ReturnStatement",
+                                    value: expr as Expr,
+                                    line: expr.line,
+                                    column: expr.column
+                                }],
+                                access: "public",
+                                line: startLine,
+                                column: startColumn
+                            } as unknown as FunctionDeclaration;
+                        }
+
+                        // Block body
+                        this.expect(TokenType.OpenBrace, "Expected opening brace after arrow function");
+                        const body: Stmt[] = [];
+                        while (this.not_eof() && this.at().type !== TokenType.CloseBrace) {
+                            body.push(this.parse_stmt());
+                        }
+                        this.expect(TokenType.CloseBrace, "Expected closing brace after arrow function body");
+
+                        return {
+                            kind: "FunctionDeclaration",
+                            identifier: "",
+                            params,
+                            body,
+                            access: "public",
+                            line: startLine,
+                            column: startColumn
+                        } as FunctionDeclaration;
+                    }
+                }
+
+                // Otherwise, treat it as a parenthesized expression
                 const expr = this.parse_expr();
                 this.expect(
                     TokenType.CloseParen,
-                    "Unexpected token found inside parenthesised expression. Expected closing paren."
-                ); // eat the close paren
+                    "Unexpected token found inside parenthesized expression. Expected closing paren."
+                );
                 return expr;
             }
-            
             default:
                 logger.ParserError(`Unexpected token found during parsing! { value: "${this.at().value}", type: ${this.at().type} } Lines: (${this.at().line}:${this.at().column})`);
                 Deno.exit(1);
