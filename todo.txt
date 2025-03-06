@@ -22,13 +22,13 @@
         - includes
         - indexOf
         - join
-    - Future Array methods to be added: (Important but can be done over time.)
         - slice()
         - concat()
         - reverse()
-        - shift()
-        - unshift()
-        - filter()
+        - shift()   | Might be broken
+        - unshift() | Might be broken
+    - Future Array methods to be added: (Important but can be done over time.)
+        - filter()  | Requires callbacks to be implemented.
         - map()
         - reduce()
         - sort()
