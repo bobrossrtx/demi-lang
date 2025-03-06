@@ -44,7 +44,6 @@ export default class Environment {
 
         return value;
     }
-
     public assignVar(varname: string, value: RuntimeVal): RuntimeVal {
         const env = this.resolve(varname);
         if (env.constants.has(varname)) {
@@ -52,10 +51,10 @@ export default class Environment {
             Deno.exit(1);
         }
 
+        // Ensure the value is properly stored in the variables map
         env.variables.set(varname, value);
         return value;
     }
-
     // public lookupVar(varname: string, customEnv: any = null): RuntimeVal {
     public lookupVar(varname: string): RuntimeVal {
         const env = this.resolve(varname);
