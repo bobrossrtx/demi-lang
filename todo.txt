@@ -117,6 +117,8 @@
 [/] - Setting variables with interpolated strings are working
 [/] - Using interpolated strings within function calls.
 
+- Updated the benchmark tests
+
 ------------------ DONE ------------------
 
 ##########################################

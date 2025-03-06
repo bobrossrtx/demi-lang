@@ -1,0 +1,9 @@
+fn random(seed) {
+    return (seed * 9301 + 49297) % 233280;
+}
+
+fn rand_range(x, y) {
+    return x + (y - x) * random(get_time()) % max(x, y+1) % 10;
+}
+
+print(rand_range(1, 10));

@@ -1,0 +1,5 @@
+fn produceRuntimeError() {
+    return null;
+}
+
+print(produceRuntimeError("There should not be a string here"));

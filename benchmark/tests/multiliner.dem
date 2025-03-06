@@ -1,0 +1,6 @@
+fn test(text) {
+    let new_text = text
+    return new_text 
+} 
+
+print(test("test"))

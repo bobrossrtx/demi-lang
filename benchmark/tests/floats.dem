@@ -1,0 +1,5 @@
+let x = 10.4;
+let b = x - 3.52;
+print(b);
+print("floor(", b, ") = ", floor(b))
+print("round(", b, ") = ", round(b))

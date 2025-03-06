@@ -6,14 +6,13 @@ function run() {
             const path = `benchmark/tests`
             const mainPath = '../main.ts';
             const cmd = `deno run --allow-read --allow-write --allow-net --allow-env ${mainPath} ${path}`
-            console.log(`Test ${currentTest} | ${(name.split(".")[0])}`)
             Deno.bench(`[${currentTest} - ${name}]`, () => {
                 // deno-lint-ignore no-deprecated-deno-api
-                Deno.run({
-                    cmd: cmd.split(' '),
-                    stdout: 'null',
-                    stderr: 'null'
-                })
+                new Deno.Command(cmd.split(' ')[0], {
+                    args: cmd.split(' ').slice(1),
+                    stdout: "null",
+                    stderr: "null"
+                }).spawn()
             })
             currentTest++
         }
