@@ -4,5 +4,6 @@
         "other": "on",
         "comments": true,
         "strings": "off"
-    }
+    },
+    "deno.path": "C:/Users/owenk/.deno/bin/deno"
 }
