@@ -1,0 +1,125 @@
+# Pre-define sleep_ms() function
+fn sleep_ms(ms) {
+    let start = get_time();
+    let end = start + ms;
+
+    let currtime = get_time();
+    while (currtime != end) {
+        currtime = get_time();
+    }
+}
+
+# Example 1: Basic callback
+print("1. Basic callback example:")
+let greet = fn(callback) {
+    callback("Hello", "World");
+};
+
+# Using the callback
+greet(fn(word1, word2) {
+    print(`${word1} ${word2}!`);
+});
+
+# Example 2: Data processing
+print("\n2. Another example with data processing:");
+let processNumber = fn(num, callback) {
+    let res = num * 2;
+    callback(res);
+};
+
+processNumber(5, fn(result) {
+    print(`The result is: ${result}`);
+});
+
+# Example 3: Sleep callback 
+print("\n3. Sleep Callback example:");
+let fetchData = fn(callback) {
+    # Simulating an asynchronous operation
+    sleep_ms(2000);
+    callback("Data fetched successfully");
+};
+
+fetchData(fn(message) {
+    print(message);
+});
+
+
+# Example 4: Array map implementation using callback
+print("\n4. Array map implementation using callback:");
+let map = fn(arr, callback) {
+    let result = [];
+    let i = 0;
+    let length = arr.length();
+    print(`i: ${i}`)
+    print(`arr: ${arr}`)
+    print(`length: ${length}`)
+    while (i < length) {
+        let current_val = arr.value(i);
+        print(`i: ${i}`)
+        let transformed = callback(current_val);
+        print(`transformed: ${transformed}`)
+        result.push(transformed);
+        print(`result: ${result}`)
+        i = i + 1;
+        print(`i: ${i}`)
+        sleep_ms(5000)
+    }
+    return result;
+};
+
+# Using the map function
+let numbers = [1, 2, 3, 4, 5];
+let doubled = map(numbers, fn(num) {
+    return num * 2;
+});
+print(`Original: ${numbers}`);
+print(`Doubled: ${doubled}`);
+# Output: Original: [1, 2, 3, 4, 5]
+#         Doubled: [2, 4, 6, 8, 10]
+
+# Example 5: Event handler simulation
+print("\n5. Event handler simulation:");
+let button = {
+    click: fn(callback) {
+        print("Button clicked!");
+        callback("Button1", "click");
+    }
+};
+
+button.click(fn(id, event) {
+    print(`Button ${id} triggered ${event} event`);
+}); # Output: Button clicked! Button1 triggered click event
+
+# Example 6: Data validator
+print("\n6. Data validator example:");
+let validateData = fn(data, successCallback, errorCallback) {
+    if (data > 0) {
+        successCallback("Data is valid");
+    } else {
+        errorCallback("Data must be greater than 0");
+    }
+};
+
+validateData(5, 
+    fn(message) { print(`Success: ${message}`); },
+    fn(error)   { print(`Error: ${error}`);     }
+    ); # Output: Success: Data is valid
+
+validateData(-1, 
+    fn(message) { print(`Success: ${message}`); },
+    fn(error)   { print(`Error: ${error}`);     }
+);  # Output: Error: Data must be greater than 0
+
+# Example 7: Callback chaining
+print("\n7. Callback chaining example:");
+let processData = fn(data, callback) {
+    let processedData = data * 2;
+    callback(processedData);
+};
+
+processData(5, (processedData) => {
+    print(`Processed data: ${processedData}`);      # Output: Processed data: 10
+    processData(processedData, fn(processedData) {
+        print(`Processed data: ${processedData}`);  # Output: Processed data: 20
+    });
+});
