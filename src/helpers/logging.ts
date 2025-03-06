@@ -22,6 +22,15 @@ export default class Logger {
         console.log("\x1B[1m\x1B[36mInfo: \x1B[0m"+outString);
     }
 
+    // lime message
+    public Example(...args: any[]) {
+        let outString = "";
+        for (let i = 0; i < args.length; i++)
+            outString += args[i];
+
+        console.log("\x1B[1m\x1B[32mExample: \x1B[0m"+outString);
+    }
+
     /// ERROR MESSAGES
     public RuntimeError(...args: any[]) {
         let outString = "";
