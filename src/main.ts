@@ -36,18 +36,38 @@ const parameters: Record<string, Parameter> = {
     },
     "-d": {
         name: "debug",
-        description: "Enables debug mode"
+        description: "Enables debug mode",
+        alias: "--debug"
+    },
+    "--debug": {
+        name: "debug",
+        description: "Enables debug mode",
+        hide: true
+    },
+    "--dout": {
+        name: "debugOutput",
+        description: "Outputs debug information to a file",
+        alias: "--debug-output"
+    },
+    "--debug-output": {
+        name: "debugOutput",
+        description: "Outputs debug information to a file",
+        hide: true
+    },
+    "-f": {
+        name: "file",
+        description: "Runs a Demi file"
     }
 }
 
-// deno-lint-ignore prefer-const
 export const globalSettings: Record<string, boolean|string> = {
     help: false,
     debug: false,
     speed: false,
     verbose: false,
     repl: false,
-    file: ""
+    file: "",
+    debugOutput: ""
 }
 
 if (Deno.args.length == 0) {
