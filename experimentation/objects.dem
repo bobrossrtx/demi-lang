@@ -1,0 +1,10 @@
+let button = {
+    click: fn(callback) {
+        print("Button clicked!");
+        callback("Button1", "click");
+    }
+};
+
+button.click(fn(id, event) {
+    print(`Button ${id} triggered ${event} event`);
+}); # Output: Button clicked! Button1 triggered click event
