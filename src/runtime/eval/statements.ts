@@ -35,10 +35,12 @@ export function eval_var_decl(declaration: VarDeclaration, env: Environment): Ru
     logger.Debug("\n=== Variable Declaration Start ===");
     logger.Debug(`Declaring: ${declaration.identifier}`);
     logger.Debug("Raw declaration:", JSON.stringify(declaration, null, 2));
-
+    logger.Debug(`Value type: ${typeof declaration.value}`);
+    logger.Debug(`Value structure: ${JSON.stringify(declaration.value)}`);
     // First, analyze the value's type
     if (declaration.value) {
         logger.Debug(`Value kind: ${declaration.value.kind}`);
+        logger.Debug(`Environment before declaration: ${JSON.stringify(env, null, 2)}`);
         
         if (declaration.value.kind === "TemplateString") {
             logger.Debug("Found template string declaration:");
@@ -53,7 +55,7 @@ export function eval_var_decl(declaration: VarDeclaration, env: Environment): Ru
             return evaluated;
         }
     }
-
+    logger.Debug(`Environment after declaration: ${JSON.stringify(env, null, 2)}`);
     // Handle non-template string cases
     const value = declaration.value ? evaluate(declaration.value, env) : MK_NULL();
     logger.Debug("Evaluated value:", JSON.stringify(value, null, 2));
@@ -69,8 +71,6 @@ export function eval_var_decl(declaration: VarDeclaration, env: Environment): Ru
 }
     
 export function eval_function_decl(declaration: FunctionDeclaration, env: Environment): RuntimeVal {
-    // Create new function scope
-
     const fn = {
         type: "function",
         identifier: declaration.identifier,
@@ -79,7 +79,13 @@ export function eval_function_decl(declaration: FunctionDeclaration, env: Enviro
         body: declaration.body 
     } as FunctionVal;
 
-    return env.declareVar(declaration.identifier, fn, true);
+    // Only declare the function in the environment if it has an identifier
+    if (declaration.identifier) {
+        return env.declareVar(declaration.identifier, fn, true);
+    }
+    
+    // For anonymous functions, just return the function value
+    return fn;
 }
 
 export function eval_class_decl(declaration: ClassDeclaration, env: Environment): RuntimeVal {
@@ -142,7 +148,8 @@ export function eval_while_stmt(stmt: WhileStatement, env: Environment): Runtime
 
     let lastEvaluated: RuntimeVal = MK_NULL();
     while (condition.value == true) {
-        lastEvaluated = eval_program({ kind: "Program", body: stmt.body, line: stmt.line, column: stmt.column }, env);
+        const loopEnv = new Environment(env);
+        lastEvaluated = eval_program({ kind: "Program", body: stmt.body, line: stmt.line, column: stmt.column }, loopEnv);
         condition.value = evaluate(stmt.condition, env).value;
     }
     return lastEvaluated;
