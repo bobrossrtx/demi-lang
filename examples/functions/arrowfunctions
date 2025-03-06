@@ -1,0 +1,25 @@
+# Arrow function brackets
+let test = () => {
+    print('test = () => {}')
+}
+test()
+
+# Oneliner
+let test2 = () => print('test2 = () => print')
+test2()
+
+# Arrow function with parameter
+let add = (num1, num2) => {
+    return num1 + num2
+}
+print(`add = (num1:{${2}}, num2:{${3}}) => ${add(2, 3)} `)
+
+# callback function
+let mycallback = fn(num1, num2, callback) {
+    let result = num1 + num2
+    callback(result)
+}
+
+mycallback(1, 2, (result) => {
+    print(`mycallback(1, 2, (result) => print(result) = ${result}`)
+})
