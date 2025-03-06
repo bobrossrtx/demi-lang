@@ -165,3 +165,37 @@ The next steps would likely be:
     3. Implement object evaluation in the runtime
     4. Add object mutation capabilities
                     (Refresher of what mutation is.)
+
+
+--------------------------------------------------------------------------------
+                    Summary Of What I've Done Today (03/26/2025) 
+
+        1. Parser Adjustments :
+            -   We focused on refining the parser logic in your TypeScript
+                code to ensure that parentheses ( () ) are only treated as
+                part of a function call when explicitly required (e.g., for
+                arrow functions or fn declarations). Otherwise, they are parsed
+                as parenthesized expressions.
+            -   This involved modifying methods like parse_primary_expr and
+                ensuring that parse_call_expr and parse_call_member_expr only
+                handle valid function calls.
+
+        2. Enhancing the run_examples.ps1 Script :
+            -   We updated the PowerShell script to provide more detailed
+                feedback after running all example .dem files.
+            -   Added logic to capture the output of each script execution and
+                detect errors dynamically.
+            -   Introduced counters for total examples, successful runs, and failures.
+            -   Logged detailed failure information, including the example name and
+                error message, for easier debugging.
+            -   Added a summary section at the end of the script to display the results
+                in a clear and organized manner.
+    
+        3. Error Handling in run_examples.ps1 :
+            -   Implemented logic to check the output of each executed command for the
+                presence of errors (e.g., by matching the word "Error").
+            -   Ensured that both runtime errors and command exceptions are properly
+                captured and logged.
+
+These changes aim to improve the robustness of the parser and the usability of your example execution workflow,
+making it easier to debug and analyze issues. Let me know if you'd like to revisit or expand on any of these areas!
