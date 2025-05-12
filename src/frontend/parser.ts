@@ -59,7 +59,7 @@ export default class Parser {
         const prev = this.tokens.shift() as Token;
         if (!prev || prev.type != type) {
             logger.ParserError(`${err} Expecting: ${TokenType[type]}! Lines: (${prev.line}:${prev.column})`);
-            Deno.exit(1);
+            throw new Error(`Parser Error: ${err} Expecting: ${TokenType[type]}! Lines: (${prev.line}:${prev.column})`);
         }
 
         return prev;
@@ -1357,8 +1357,9 @@ export default class Parser {
                 return expr;
             }
             default:
-                logger.ParserError(`Unexpected token found during parsing! { value: "${this.at().value}", type: ${this.at().type} } Lines: (${this.at().line}:${this.at().column})`);
-                Deno.exit(1);
+                const errorMsg = `Unexpected token found during parsing! { value: "${this.at().value}", type: ${this.at().type} } Lines: (${this.at().line}:${this.at().column})`;
+                logger.ParserError(errorMsg);
+                throw new Error(errorMsg);
         }
     }
 }

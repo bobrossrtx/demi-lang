@@ -47,7 +47,7 @@ fi
 mkdir $installdir; mkdir $bindir;
 
 # If os is unknown
-if [ $ostype = "unknown" ]; then
+if [ $ostype = "unknown" ];
 then
     echo -e "\033[31mUnable to detect operating system type!\033[0m"
     exit 1
