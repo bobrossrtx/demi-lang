@@ -204,16 +204,19 @@ async function runTest(filename: string) {
     // Output buffer to collect all messages
     const outputLines: string[] = [];
     const addToOutput = (line: string) => {
-        const lines = line.split('\n');
+        const lines = String(line).split('\n');
         for (const l of lines) {
-            outputLines.push(`┃ ${l.padEnd(borderWidth - 2)}┃`);
+            // Make sure lines don't exceed the border width
+            const truncatedLine = l.length > borderWidth - 4 ? 
+                l.slice(0, borderWidth - 7) + '...' : l;
+            outputLines.push(`┃ ${truncatedLine.padEnd(borderWidth - 2)}┃`);
         }
     };
     
     let success = false;
     try {
         // Read the file
-        let input: string;
+        let input: string | undefined = undefined;
         try {
             input = await Deno.readTextFile(filename);
         } catch (err) {
@@ -279,12 +282,15 @@ async function runTest(filename: string) {
     // Print status line
     console.log(`┣${"━".repeat(borderWidth)}┫`);
     const statusText = success ? "✅ PASSED" : "❌ FAILED";
-    console.log(`┃ ${statusText.padEnd(borderWidth - 2)}┃`);
+    // Center the status text for better visual appeal
+    const paddingLength = borderWidth - statusText.length - 2;
+    const leftPadding = Math.floor(paddingLength / 2);
+    const rightPadding = paddingLength - leftPadding;
+    console.log(`┃${" ".repeat(leftPadding)}${statusText}${" ".repeat(rightPadding)}┃`);
     console.log(bottomBorder);
     console.log(""); // Empty line after each test
     
     return success;
-}
 }
 
 /**
@@ -331,14 +337,31 @@ async function runTestsRecursively(directoryPath: string) {
     const summaryBottomBorder = `┗${"━".repeat(summaryWidth)}┛`;
     
     console.log(summaryTopBorder);
-    console.log(`┃ 📊 Test Summary ${"".padEnd(summaryWidth - 16)}┃`);
+    console.log(`┃ 📊 Test Summary ${" ".padEnd(summaryWidth - 16)}┃`);
     console.log(`┣${"━".repeat(summaryWidth)}┫`);
-    console.log(`┃ ✅ Tests passed: ${passedTests.toString().padEnd(summaryWidth - 17)}┃`);
-    console.log(`┃ ❌ Tests failed: ${failedTests.toString().padEnd(summaryWidth - 17)}┃`);
+    
+    // Center align the results for better visual appeal
+    const passText = `✅ Tests passed: ${passedTests}`;
+    const failText = `❌ Tests failed: ${failedTests}`;
+    const totalText = `🔢 Total tests: ${passedTests + failedTests}`;
+    
+    const passPadding = summaryWidth - passText.length - 2;
+    const leftPassPad = Math.floor(passPadding / 2);
+    const rightPassPad = passPadding - leftPassPad;
+    
+    const failPadding = summaryWidth - failText.length - 2;
+    const leftFailPad = Math.floor(failPadding / 2);
+    const rightFailPad = failPadding - leftFailPad;
+    
+    const totalPadding = summaryWidth - totalText.length - 2;
+    const leftTotalPad = Math.floor(totalPadding / 2);
+    const rightTotalPad = totalPadding - leftTotalPad;
+    
+    console.log(`┃${" ".repeat(leftPassPad)}${passText}${" ".repeat(rightPassPad)}┃`);
+    console.log(`┃${" ".repeat(leftFailPad)}${failText}${" ".repeat(rightFailPad)}┃`);
     console.log(`┣${"━".repeat(summaryWidth)}┫`);
-    console.log(`┃ 🔢 Total tests: ${(passedTests + failedTests).toString().padEnd(summaryWidth - 17)}┃`);
+    console.log(`┃${" ".repeat(leftTotalPad)}${totalText}${" ".repeat(rightTotalPad)}┃`);
     console.log(summaryBottomBorder);
-}
 }
 
 function repl() {
